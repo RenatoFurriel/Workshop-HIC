@@ -1,0 +1,18 @@
+# ===== Documentos internos / sensíveis — NUNCA publicar =====
+# transcrições de reunião, copy, briefing, contexto de projeto, playbook comercial
+*.md
+!README.md
+*.zip
+
+# ===== Assets de origem / intermediários (não usados no site publicado) =====
+Fotos-Time-ITXPRO.png
+FOTO 2026.png
+roberto-arteiro.png
+\#f26101 (1).png
+
+# ===== Versão antiga descartada =====
+lp-workshop-grc-ti_1.html
+
+# ===== Sistema / config local =====
+.DS_Store
+.claude/
