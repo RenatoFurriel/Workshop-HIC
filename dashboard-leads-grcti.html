@@ -198,7 +198,7 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
         <h3>ⓘ Como calculamos</h3><div class="hint">régua transparente · ajustável no código</div>
         <p class="how-lead">Score Geral (0–100) = soma das 4 perguntas:</p>
         <ul class="how-list">
-          <li><b>Satisfação com a carreira</b> <span>Tot. insatisfeito 30 · Insatisfeito 25 · Satisfeito 8 · Tot. satisfeito 0</span></li>
+          <li><b>Satisfação com a carreira</b> <span>Tot. insatisfeito 35 · Insatisfeito 20 · Satisfeito 8 · Tot. satisfeito 0</span></li>
           <li><b>Aceitaria o desafio</b> <span>Sim 25 · Não 0</span></li>
           <li><b>Renda</b> <span>&lt;5K 8 · 5–10K 12 · 10–15K 16 · 15–20K 20 · 20–25K 23 · +25K 25</span></li>
           <li><b>Conhece o Roberto</b> <span>+1 ano 20 · ~6m 15 · 1–3m 11 · Acabei 6</span></li>
@@ -315,7 +315,7 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
   }
   function normalizeRows(raw,headers){
     var map=buildMapper(headers);
-    scoreOk = !!(map.satisfacao && map.aceitar && map.renda && map.conhece);
+    scoreOk = scoreOk || !!(map.satisfacao && map.aceitar && map.renda && map.conhece);
     return raw.map(function(o){
       function g(key){return map[key]?o[map[key]]:"";}
       return {
@@ -356,7 +356,7 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
   // ===== Score Geral (0-100) — regua transparente e ajustavel =====
   var SCORE_CONFIG = {
     quente: 70, morno: 40,     // faixas de classificacao do Score Geral (0-100)
-    satisfacao: [ [/tot\w* insatisf/,30], [/insatisf/,25], [/tot\w* satisf/,0], [/satisf/,8] ],
+    satisfacao: [ [/tot\w* insatisf/,35], [/insatisf/,20], [/tot\w* satisf/,0], [/satisf/,8] ],
     aceitar: [ [/sim/,25] ],   // default 0 (Nao)
     rendaFaixa: [ [20,23],[15,20],[10,16],[5,12] ], // + <5K:8, +25K:25
     conhece: [ [/bastante tempo|mais de 1 ?ano|mais de um ano/,20],[/6 ?meses|seis meses/,15],[/1 a 3|um a tres|pouco tempo/,11],[/acabei|anunci|nao conhec/,6] ]
@@ -370,7 +370,7 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
     for(var i=0;i<SCORE_CONFIG.rendaFaixa.length;i++){if(lo>=SCORE_CONFIG.rendaFaixa[i][0])return SCORE_CONFIG.rendaFaixa[i][1];}
     return 8;
   }
-  function leadScore(r){return matchPts(r.satisfacao,SCORE_CONFIG.satisfacao,0)+matchPts(r.aceitar,SCORE_CONFIG.aceitar,0)+rendaScore(r.renda)+matchPts(r.conhece,SCORE_CONFIG.conhece,6);}
+  function leadScore(r){return Math.min(100,matchPts(r.satisfacao,SCORE_CONFIG.satisfacao,0)+matchPts(r.aceitar,SCORE_CONFIG.aceitar,0)+rendaScore(r.renda)+matchPts(r.conhece,SCORE_CONFIG.conhece,6));}
   function tierOf(sc){return sc>=SCORE_CONFIG.quente?"Quente":(sc>=SCORE_CONFIG.morno?"Morno":"Frio");}
   function tierColor(sc){return sc>=SCORE_CONFIG.quente?ORANGE:(sc>=SCORE_CONFIG.morno?"#E8A33D":"#5F6A72");}
 
@@ -622,7 +622,9 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
     document.getElementById("demo-banner").classList.add("hidden");
     Papa.parse(CONFIG.csvUrl,{download:true,header:true,skipEmptyLines:true,complete:function(res){
       var headers=res.meta.fields||[];
-      ALL=normalizeRows(res.data,headers);
+      var rows=normalizeRows(res.data,headers);
+      if(rows.length===0 && ALL.length>0){stampUpdated();return;} // ignora refresh vazio/transiente
+      ALL=rows;
       initDates();
       render();
     },error:function(){document.getElementById("st-updated").textContent="erro ao carregar";}});
@@ -631,7 +633,7 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
   ["f-de","f-ate","f-canal"].forEach(function(id){var el=document.getElementById(id);if(el)el.addEventListener("change",render);});
   document.getElementById("f-reset").addEventListener("click",function(){datesInit=false;initDates();render();});
   countdown();loadData();
-  setInterval(loadData,CONFIG.refreshMs);
+  setInterval(function(){if(!document.hidden)loadData();},CONFIG.refreshMs);
   document.addEventListener("visibilitychange",function(){if(!document.hidden)loadData();});
 })();
 </script>
