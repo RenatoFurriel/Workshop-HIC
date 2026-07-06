@@ -634,7 +634,17 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
   document.getElementById("f-reset").addEventListener("click",function(){datesInit=false;initDates();render();});
   countdown();loadData();
   setInterval(function(){if(!document.hidden)loadData();},CONFIG.refreshMs);
+
+  // Anti-sumico: quando a aba/janela volta a ter foco, o navegador pode ter
+  // descartado os pixels do canvas enquanto ficou ociosa/em segundo plano.
+  // render() reconstroi os graficos a partir dos dados em memoria (sem rede),
+  // entao repintar sempre recupera. Cobrimos os 3 eventos porque
+  // visibilitychange NAO dispara ao so trocar de janela/app (isso e "focus"),
+  // so ao trocar de aba ou minimizar.
+  function repaint(){if(!document.hidden && ALL.length)render();}
   document.addEventListener("visibilitychange",function(){if(!document.hidden)loadData();});
+  window.addEventListener("focus",repaint);
+  window.addEventListener("pageshow",repaint);
 })();
 </script>
 </body>
