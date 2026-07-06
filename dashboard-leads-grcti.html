@@ -46,8 +46,11 @@ header{position:sticky;top:0;z-index:20;background:rgba(17,18,20,.92);backdrop-f
 /* filters */
 .filters{display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:18px 0}
 .filters label{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
-.filters select{font-family:var(--body);font-size:13px;background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:pointer}
-.filters select:focus-visible{outline:2px solid var(--orange);outline-offset:1px}
+.filters select,.filters input[type=date]{font-family:var(--body);font-size:13px;background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:pointer}
+.filters input[type=date]{color-scheme:dark}
+.filters select:focus-visible,.filters input[type=date]:focus-visible{outline:2px solid var(--orange);outline-offset:1px}
+.f-reset{font-family:var(--mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;background:transparent;color:var(--orange);border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:pointer}
+.f-reset:hover{border-color:var(--orange)}
 
 /* sections */
 .section{padding:8px 0 40px}
@@ -99,6 +102,21 @@ body:not(.is-empty) .empty{display:none}
 .fstep.dim .fbar{background:var(--surface-2)}
 .fstep.dim .fname,.fstep.dim .fnums{color:var(--muted)}
 
+/* painel "como calculamos" */
+.score-how .how-axis{display:flex;align-items:baseline;gap:10px;margin-top:14px;flex-wrap:wrap}
+.how-tag{font-family:var(--display);font-weight:600;font-size:13px;color:var(--text)}
+.how-note{font-family:var(--mono);font-size:10.5px;color:var(--dim);text-transform:uppercase;letter-spacing:.03em}
+.how-list{list-style:none;margin:8px 0 0}
+.how-list li{padding:7px 0;border-bottom:1px solid var(--line);font-size:12.5px;color:var(--muted)}
+.how-list li:last-child{border-bottom:none}
+.how-list li b{color:var(--text);font-weight:600;display:block;margin-bottom:2px}
+.how-list li span{font-family:var(--mono);font-size:11px;color:var(--dim)}
+.how-foot{font-size:11.5px;color:var(--dim);margin-top:14px;line-height:1.5}
+/* estado "aguardando score": some scatter/funil/temp-canal quando score indisponível */
+body.no-score #c-quad,body.no-score #c-funnel,body.no-score #c-temp-canal{visibility:hidden}
+body:not(.no-score) #score-empty,body:not(.no-score) #sec-score .empty{display:none}
+body.no-score #k-temp,body.no-score #k-pront,body.no-score #k-qp{font-size:15px;color:var(--dim)}
+
 footer{border-top:1px solid var(--line);padding:22px 0 40px;text-align:center}
 footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.04em}
 </style>
@@ -124,15 +142,13 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
 <main class="wrap">
 
   <div class="filters">
-    <label for="f-periodo">Período</label>
-    <select id="f-periodo">
-      <option value="all">Todo o período</option>
-      <option value="7">Últimos 7 dias</option>
-      <option value="14">Últimos 14 dias</option>
-      <option value="30">Últimos 30 dias</option>
-    </select>
+    <label for="f-de">De</label>
+    <input type="date" id="f-de">
+    <label for="f-ate">Até</label>
+    <input type="date" id="f-ate">
     <label for="f-canal">Canal</label>
     <select id="f-canal"><option value="all">Todos os canais</option></select>
+    <button type="button" id="f-reset" class="f-reset">Tudo até hoje</button>
   </div>
 
   <!-- KPIs -->
@@ -140,9 +156,9 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
     <div class="kpi-grid">
       <div class="kpi"><div class="label">Total de leads</div><div class="val" id="k-total">0</div><div class="sub" id="k-total-sub">&nbsp;</div></div>
       <div class="kpi"><div class="label">Leads hoje</div><div class="val" id="k-hoje">0</div><div class="sub" id="k-hoje-sub">&nbsp;</div></div>
-      <div class="kpi"><div class="label">Últimos 7 dias</div><div class="val" id="k-7d">0</div><div class="sub" id="k-7d-sub">&nbsp;</div></div>
-      <div class="kpi"><div class="label">Pontuação média</div><div class="val" id="k-score">0</div><div class="sub" id="k-score-sub">&nbsp;</div></div>
-      <div class="kpi"><div class="label">Confirmam ao vivo</div><div class="val" id="k-live">0%</div><div class="sub" id="k-live-sub">&nbsp;</div></div>
+      <div class="kpi"><div class="label">Temperatura média</div><div class="val" id="k-temp">—</div><div class="sub" id="k-temp-sub">&nbsp;</div></div>
+      <div class="kpi"><div class="label">Prontidão média</div><div class="val" id="k-pront">—</div><div class="sub" id="k-pront-sub">&nbsp;</div></div>
+      <div class="kpi"><div class="label">Quente + Pronto</div><div class="val" id="k-qp">—</div><div class="sub" id="k-qp-sub">&nbsp;</div></div>
     </div>
   </section>
 
@@ -159,16 +175,47 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
     </div>
   </section>
 
+  <!-- SCORE: TEMPERATURA × PRONTIDÃO -->
+  <section class="section" id="sec-score">
+    <div class="section-head"><span class="kicker">Score · Temperatura × Prontidão</span><h2>Com quem falar primeiro</h2></div>
+    <div class="grid g-32">
+      <div class="card">
+        <h3>Mapa de leads</h3><div class="hint">cada ponto é um lead · X = temperatura · Y = prontidão</div>
+        <div class="chart-box tall"><canvas id="c-quad"></canvas>
+          <div class="empty" id="score-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/></svg><span class="big">Aguardando as perguntas de qualificação</span><span class="small">o mapa acende quando o formulário tiver satisfação e "aceitaria o desafio"</span></div>
+        </div>
+      </div>
+      <div class="card score-how">
+        <h3>ⓘ Como calculamos</h3><div class="hint">régua transparente · ajustável no código</div>
+        <div class="how-axis"><span class="how-tag temp">🌡️ Temperatura (0–100)</span><span class="how-note">desejo de mudar + proximidade</span></div>
+        <ul class="how-list">
+          <li><b>Satisfação</b> <span>Tot. insatisfeito 60 · Insatisfeito 50 · Satisfeito 15 · Tot. satisfeito 0</span></li>
+          <li><b>Conhece o Roberto</b> <span>+1 ano 40 · ~6 meses 30 · 1–3 meses 22 · Acabei 12</span></li>
+        </ul>
+        <div class="how-axis"><span class="how-tag pront">⚡ Prontidão (0–100)</span><span class="how-note">disposição a agir + poder de pagar</span></div>
+        <ul class="how-list">
+          <li><b>Aceitaria o desafio</b> <span>Sim 50 · Não 0</span></li>
+          <li><b>Renda</b> <span>&lt;5K 15 · 5–10K 25 · 10–15K 33 · 15–20K 40 · 20–25K 46 · +25K 50</span></li>
+        </ul>
+        <p class="how-foot">Corte de "quente"/"pronto" = 50. Um lead é prioridade quando está nos dois.</p>
+      </div>
+    </div>
+    <div class="grid g-2" style="margin-top:14px">
+      <div class="card"><h3>Temperatura média por canal</h3><div class="hint">qual fonte traz o lead mais quente</div><div class="chart-box"><canvas id="c-temp-canal"></canvas><div class="empty"><span class="small">sem dados de score</span></div></div></div>
+      <div class="card"><h3>Funil de qualidade</h3><div class="hint">Total → Quentes → Prontos → Quentes e Prontos</div><div class="funnel" id="c-funnel"></div><div class="empty"><span class="small">sem dados de score</span></div></div>
+    </div>
+  </section>
+
   <!-- QUALIDADE & ICP -->
   <section class="section">
-    <div class="section-head"><span class="kicker">Qualidade & ICP</span><h2>Quão bons são esses leads</h2></div>
+    <div class="section-head"><span class="kicker">Qualidade & ICP</span><h2>Poder de compra e perfil</h2></div>
     <div class="grid g-2">
-      <div class="card"><h3>Distribuição de pontuação</h3><div class="hint">lead score do Respondi</div><div class="chart-box"><canvas id="c-score"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
       <div class="card"><h3>Faixa de renda</h3><div class="hint">poder de compra</div><div class="chart-box"><canvas id="c-renda"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
-    </div>
-    <div class="grid g-32" style="margin-top:14px">
-      <div class="card"><h3>Renda × Situação</h3><div class="hint">onde está o público PRO-ready (mais quente = mais leads)</div><div class="heatmap" id="c-heat"></div><div class="empty"><span class="small">sem dados</span></div></div>
       <div class="card"><h3>Situação atual</h3><div class="hint">Estagnado × Transição</div><div class="chart-box"><canvas id="c-situacao"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
+    </div>
+    <div class="grid g-2" style="margin-top:14px">
+      <div class="card"><h3>Renda × Situação</h3><div class="hint">onde está o público PRO-ready (mais quente = mais leads)</div><div class="heatmap" id="c-heat"></div><div class="empty"><span class="small">sem dados</span></div></div>
+      <div class="card"><h3>Conhece o Roberto há</h3><div class="hint">audiência fria × quente</div><div class="chart-box"><canvas id="c-conhece"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
     </div>
   </section>
 
@@ -178,16 +225,7 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
     <div class="grid g-3">
       <div class="card"><h3>Estados</h3><div class="hint">top por volume</div><div class="chart-box"><canvas id="c-estado"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
       <div class="card"><h3>Faixa etária</h3><div class="hint">&nbsp;</div><div class="chart-box"><canvas id="c-idade"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
-      <div class="card"><h3>Conhece o Roberto há</h3><div class="hint">audiência fria × quente</div><div class="chart-box"><canvas id="c-conhece"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
-    </div>
-  </section>
-
-  <!-- DECISÃO -->
-  <section class="section">
-    <div class="section-head"><span class="kicker">Decisão</span><h2>Para onde levar a verba</h2></div>
-    <div class="grid g-2">
-      <div class="card"><h3>Pontuação média por canal</h3><div class="hint">qual fonte traz o melhor lead, não só o mais barato</div><div class="chart-box"><canvas id="c-score-canal"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
-      <div class="card"><h3>Funil de qualidade</h3><div class="hint">quantos leads chegam qualificados e com intenção de ir ao vivo</div><div class="funnel" id="c-funnel"></div><div class="empty"><span class="small">sem dados</span></div></div>
+      <div class="card"><h3>Função / atividade</h3><div class="hint">perfil profissional</div><div class="chart-box"><canvas id="c-funcao"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
     </div>
   </section>
 
@@ -258,6 +296,8 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
       cobit:fieldFor(headers,["cobit"]),
       conhece:fieldFor(headers,["conhece","roberto arteiro"]),
       renda:fieldFor(headers,["renda"]),
+      satisfacao:fieldFor(headers,["satisfa"]),
+      aceitar:fieldFor(headers,["aceit","desafio","disposto"]),
       aovivo:fieldFor(headers,["ao vivo","participar"]),
       score:fieldFor(headers,["pontuacao","pontua"]),
       data:fieldFor(headers,["data"]),
@@ -269,6 +309,7 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
   }
   function normalizeRows(raw,headers){
     var map=buildMapper(headers);
+    scoreOk = !!(map.satisfacao && map.aceitar && map.renda && map.conhece);
     return raw.map(function(o){
       function g(key){return map[key]?o[map[key]]:"";}
       return {
@@ -282,6 +323,8 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
         cobit:(g("cobit")||"").toString().trim(),
         conhece:(g("conhece")||"").toString().trim(),
         renda:(g("renda")||"").toString().trim(),
+        satisfacao:(g("satisfacao")||"").toString().trim(),
+        aceitar:(g("aceitar")||"").toString().trim(),
         aovivo:(g("aovivo")||"").toString().trim(),
         score:parseFloat((g("score")||"0").toString().replace(",","."))||0,
         data:parseDate(g("data"))||new Date(),
@@ -304,6 +347,34 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
   }
   function aovivoPos(r){return /sim|poss|vou|confirm|certeza/.test(norm(r.aovivo));}
 
+  // ===== Score: Temperatura × Prontidão (régua transparente e ajustável) =====
+  var SCORE_CONFIG = {
+    corte: 50,                 // ≥ corte = "quente" / "pronto"
+    satisfacao: [              // ordem importa (checar "totalmente" antes)
+      [/tot\w* insatisf/, 60], [/insatisf/, 50], [/tot\w* satisf/, 0], [/satisf/, 15]
+    ],
+    conhece: [
+      [/bastante tempo|mais de 1 ?ano|mais de um ano/, 40],
+      [/6 ?meses|seis meses/, 30],
+      [/1 a 3|um a tres|pouco tempo/, 22],
+      [/acabei|anunci|nao conhec/, 12]
+    ],
+    aceitar: [ [/sim/, 50] ],  // default 0 (Não)
+    rendaFaixa: [ [20,46],[15,40],[10,33],[5,25] ] // [limite inferior, pontos]
+  };
+  function matchPts(txt, rules, def){var s=norm(txt);for(var i=0;i<rules.length;i++){if(rules[i][0].test(s))return rules[i][1];}return def;}
+  function rendaScore(txt){
+    var s=norm(txt);
+    if(/menos|ate 5|inferior|< ?5/.test(s)) return 15;
+    if(/acima|mais de 25|superior|25k\+/.test(s)) return 50;
+    var nums=(s.match(/\d+/g)||[]).map(Number), lo=nums.length?Math.min.apply(null,nums):0;
+    for(var i=0;i<SCORE_CONFIG.rendaFaixa.length;i++){if(lo>=SCORE_CONFIG.rendaFaixa[i][0])return SCORE_CONFIG.rendaFaixa[i][1];}
+    return 15;
+  }
+  function tempScore(r){return matchPts(r.satisfacao,SCORE_CONFIG.satisfacao,0)+matchPts(r.conhece,SCORE_CONFIG.conhece,12);}
+  function prontScore(r){return matchPts(r.aceitar,SCORE_CONFIG.aceitar,0)+rendaScore(r.renda);}
+  function quadColor(t,p){if(t>=SCORE_CONFIG.corte&&p>=SCORE_CONFIG.corte)return ORANGE;if(t>=SCORE_CONFIG.corte)return ORANGE2;if(p>=SCORE_CONFIG.corte)return "#E8A33D";return "#5F6A72";}
+
   // ===== dados fictícios (a planilha está vazia) =====
   function mockData(){
     var canais=["Instagram","YouTube","Indicação de amigo","E-mail","Google","LinkedIn"];
@@ -314,8 +385,10 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
     var situacoes=["Empregado, quero crescer","Empregado, estagnado","Em transição de carreira","Desempregado","Autônomo/Consultor"];
     var exps=["Sim, mais de 3 anos","Sim, até 3 anos","Alguma experiência","Nenhuma"];
     var cobits=["Nenhuma","Básica","Intermediária","Avançada"];
-    var conhece=["Não conheço","Menos de 6 meses","6 meses a 1 ano","Mais de 1 ano","Sou aluno/mentorado"];
-    var rendas=["Até R$ 5 mil","R$ 5 a 8 mil","R$ 8 a 12 mil","R$ 12 a 18 mil","R$ 18 a 25 mil","Acima de R$ 25 mil"];
+    var conhece=["Há bastante tempo (mais de 1 ano).","Há pouco tempo (cerca de 1 a 3 meses).","Há mais ou menos 6 meses.","Acabei de conhecer através dos anúncios do evento."];
+    var rendas=["Menos de 5K","5K a 10K","10K a 15K","15K a 20K","20K a 25K","Acima de 25K"];
+    var satisfacoes=["Totalmente Insatisfeito (Preciso mudar com urgência)","Insatisfeito (Quero mudar de situação e já comecei a buscar um caminho)","Satisfeito (Estou bem, só faltam alguns detalhes)","Totalmente Satisfeito (Tudo está perfeito pra mim. Não mudaria nada)"];
+    var aceitas=["Sim","Sim","Sim","Não"];
     var aovivos=["Sim","Sim","Sim","Talvez","Não"];
     var campaigns=["hic-frio-video","hic-interesse-carreira","retargeting-lp","lookalike-grc","organico"];
     var srcs=[["google","gclid"],["facebook","fbclid"],["instagram","fbclid"],["google","gclid"],["",""]];
@@ -329,6 +402,7 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
       rows.push({
         canal:pick(canais),estado:pick(estados),sexo:pick(sexos),idade:pick(idades),funcao:pick(funcoes),
         situacao:pick(situacoes),expGRC:pick(exps),cobit:pick(cobits),conhece:pick(conhece),renda:renda,
+        satisfacao:pick(satisfacoes),aceitar:pick(aceitas),
         aovivo:pick(aovivos),
         score:Math.min(100,Math.max(5,Math.round(30+base*7+Math.random()*45))),
         data:d,
@@ -340,13 +414,16 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
   }
 
   // ===== estado / filtros =====
-  var ALL=[], charts={};
+  var ALL=[], charts={}, scoreOk=false, datesInit=false;
+  function parseInput(id){var v=document.getElementById(id).value;if(!v)return null;var p=v.split("-");return new Date(+p[0],+p[1]-1,+p[2]);}
   function applyFilters(){
-    var per=document.getElementById("f-periodo").value;
     var can=document.getElementById("f-canal").value;
-    var now=new Date();
+    var de=parseInput("f-de"), ate=parseInput("f-ate");
+    if(de) de.setHours(0,0,0,0);
+    if(ate) ate.setHours(23,59,59,999);
     return ALL.filter(function(r){
-      if(per!=="all"){var diff=(now-r.data)/86400000;if(diff>+per)return false;}
+      if(de&&r.data<de)return false;
+      if(ate&&r.data>ate)return false;
       if(can!=="all"&&r.canal!==can)return false;
       return true;
     });
@@ -366,6 +443,21 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
       options:{responsive:true,maintainAspectRatio:false,cutout:"64%",plugins:{legend:{display:true,position:"right",labels:{color:MUTED,boxWidth:10,font:{size:11}}}}}});
   }
 
+  function SCORE_KPIS(rows){
+    function t(id,v){var el=document.getElementById(id);if(el)el.textContent=v;}
+    if(scoreOk && rows.length){
+      var tAvg=Math.round(rows.reduce(function(a,r){return a+tempScore(r);},0)/rows.length);
+      var pAvg=Math.round(rows.reduce(function(a,r){return a+prontScore(r);},0)/rows.length);
+      var qp=rows.filter(function(r){return tempScore(r)>=SCORE_CONFIG.corte&&prontScore(r)>=SCORE_CONFIG.corte;}).length;
+      setNum("k-temp",tAvg);setNum("k-pront",pAvg);
+      t("k-qp",Math.round(100*qp/rows.length)+"%");
+      t("k-temp-sub","0 a 100");t("k-pront-sub","0 a 100");t("k-qp-sub",qp+" prioritários");
+    } else {
+      t("k-temp","—");t("k-pront","—");t("k-qp","—");
+      t("k-temp-sub","aguardando perguntas");t("k-pront-sub"," ");t("k-qp-sub"," ");
+    }
+  }
+
   function render(){
     var rows=applyFilters();
     document.body.classList.toggle("is-empty",rows.length===0);
@@ -377,12 +469,12 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
     var d7=rows.filter(function(r){return (now-r.data)/86400000<=7;}).length;
     var avg=rows.length?Math.round(rows.reduce(function(s,r){return s+r.score;},0)/rows.length):0;
     var livePct=rows.length?Math.round(100*rows.filter(aovivoPos).length/rows.length):0;
-    setNum("k-total",rows.length);setNum("k-hoje",hoje);setNum("k-7d",d7);setNum("k-score",avg);
-    document.getElementById("k-live").textContent=livePct+"%";
+    setNum("k-total",rows.length);setNum("k-hoje",hoje);SCORE_KPIS(rows);
+    document.body.classList.toggle("no-score", !scoreOk);
     document.getElementById("k-total-sub").textContent=rows.length?("+"+hoje+" hoje"):" ";
-    document.getElementById("k-score-sub").textContent=rows.length?"de 0 a 100":" ";
-    document.getElementById("k-live-sub").textContent=rows.length?(rows.filter(aovivoPos).length+" pessoas"):" ";
-    document.getElementById("k-hoje-sub").textContent=" ";document.getElementById("k-7d-sub").textContent=" ";
+    
+    
+    document.getElementById("k-hoje-sub").textContent=" ";
 
     if(rows.length===0){return;}
 
@@ -411,10 +503,6 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
     // utm campaign
     var utm=sortedEntries(count(rows.filter(function(r){return r.utm_campaign;}),function(r){return r.utm_campaign;}),8);
     barChart("c-utm",utm.map(function(e){return e[0];}),utm.map(function(e){return e[1];}),{horizontal:true,color:ORANGE2});
-    // score histogram
-    var bins=[0,0,0,0,0],blab=["0-20","21-40","41-60","61-80","81-100"];
-    rows.forEach(function(r){var b=Math.min(4,Math.floor(r.score/20));bins[b]++;});
-    barChart("c-score",blab,bins);
     // renda
     var rendaOrder=orderByFreqOrList(rows,"renda");
     barChart("c-renda",rendaOrder.map(function(e){return e[0];}),rendaOrder.map(function(e){return e[1];}));
@@ -427,16 +515,22 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
     // idade
     var idd=sortedEntries(count(rows,function(r){return r.idade;}));
     barChart("c-idade",idd.map(function(e){return e[0];}),idd.map(function(e){return e[1];}));
+    // funcao
+    var fnc=sortedEntries(count(rows,function(r){return r.funcao;}),8);
+    barChart("c-funcao",fnc.map(function(e){return e[0];}),fnc.map(function(e){return e[1];}),{horizontal:true});
     // conhece
     var con=sortedEntries(count(rows,function(r){return r.conhece;}));
     barChart("c-conhece",con.map(function(e){return e[0];}),con.map(function(e){return e[1];}),{horizontal:true,color:ORANGE2});
-    // score médio por canal
-    var scoreByCanal=avgBy(rows,function(r){return r.canal;},function(r){return r.score;});
-    var sbc=Object.entries(scoreByCanal).sort(function(a,b){return b[1]-a[1];});
-    barChart("c-score-canal",sbc.map(function(e){return e[0];}),sbc.map(function(e){return Math.round(e[1]);}),{horizontal:true});
+    // Score: Temperatura x Prontidao
+    if(scoreOk){
+      renderScatter(rows);
+      var tByCanal=avgBy(rows,function(r){return r.canal;},function(r){return tempScore(r);});
+      var tbc=Object.entries(tByCanal).sort(function(a,b){return b[1]-a[1];});
+      barChart("c-temp-canal",tbc.map(function(e){return e[0];}),tbc.map(function(e){return Math.round(e[1]);}),{horizontal:true});
+      renderFunnel(rows);
+    }
 
     renderHeatmap(rows);
-    renderFunnel(rows,avg);
     buildCanalFilter();
     stampUpdated();
   }
@@ -463,17 +557,37 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
   }
   function shorten(s,n){return s.length>n?s.slice(0,n-1)+"…":s;}
 
-  function renderFunnel(rows,avg){
+  function renderScatter(rows){
+    destroy("c-quad");var ctx=document.getElementById("c-quad");if(!ctx)return;
+    var pts=rows.map(function(r){var t=tempScore(r),p=prontScore(r);
+      return {x:Math.max(0,Math.min(100,t+(Math.random()*5-2.5))),y:Math.max(0,Math.min(100,p+(Math.random()*5-2.5))),t:t,p:p,bg:quadColor(t,p)};});
+    var quad={id:"quad",afterDraw:function(chart){
+      var a=chart.chartArea,c=chart.ctx,mx=chart.scales.x.getPixelForValue(50),my=chart.scales.y.getPixelForValue(50);
+      c.save();c.strokeStyle="rgba(180,186,192,.22)";c.setLineDash([4,4]);c.lineWidth=1;
+      c.beginPath();c.moveTo(mx,a.top);c.lineTo(mx,a.bottom);c.moveTo(a.left,my);c.lineTo(a.right,my);c.stroke();
+      c.setLineDash([]);c.font="600 9px 'IBM Plex Mono'";c.fillStyle="rgba(180,186,192,.5)";c.textAlign="center";
+      c.fillText("QUENTE + PRONTO",(mx+a.right)/2,a.top+13);c.fillText("FRIO + PRONTO",(a.left+mx)/2,a.top+13);
+      c.fillText("QUENTE + POUCO PRONTO",(mx+a.right)/2,a.bottom-7);c.fillText("FRIO + POUCO PRONTO",(a.left+mx)/2,a.bottom-7);
+      c.restore();
+    }};
+    charts["c-quad"]=new Chart(ctx,{type:"scatter",
+      data:{datasets:[{data:pts,pointRadius:5,pointHoverRadius:7,backgroundColor:pts.map(function(p){return p.bg;}),borderColor:"rgba(17,18,20,.6)",borderWidth:1}]},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{tooltip:{callbacks:{label:function(cc){return "Temp "+Math.round(cc.raw.t)+" · Pront "+Math.round(cc.raw.p);}}}},
+        scales:{x:{min:0,max:100,title:{display:true,text:"Temperatura",color:DIM},grid:{color:"rgba(43,47,51,.5)"},ticks:{color:DIM,stepSize:25}},
+                y:{min:0,max:100,title:{display:true,text:"Prontidão",color:DIM},grid:{color:"rgba(43,47,51,.5)"},ticks:{color:DIM,stepSize:25}}}},
+      plugins:[quad]});
+  }
+
+  function renderFunnel(rows){
     var el=document.getElementById("c-funnel");if(!el)return;
-    var total=rows.length;
-    var qualif=rows.filter(function(r){return r.score>=avg;}).length;
-    var live=rows.filter(aovivoPos).length;
-    var both=rows.filter(function(r){return r.score>=avg&&aovivoPos(r);}).length;
-    var steps=[["Total de leads",total],["Qualificados (score ≥ média)",qualif],["Confirmam ao vivo",live],["Qualificados E ao vivo",both]];
-    el.innerHTML=steps.map(function(st,i){
-      var pct=total?Math.round(100*st[1]/total):0;
-      return '<div class="fstep'+(i===steps.length-1?"":"")+'"><div class="fbar" style="width:'+pct+'%"></div><div class="fcontent"><span class="fname">'+st[0]+'</span><span class="fnums">'+st[1]+' · '+pct+'%</span></div></div>';
-    }).join("");
+    var total=rows.length,C=SCORE_CONFIG.corte;
+    var quentes=rows.filter(function(r){return tempScore(r)>=C;}).length;
+    var prontos=rows.filter(function(r){return prontScore(r)>=C;}).length;
+    var both=rows.filter(function(r){return tempScore(r)>=C&&prontScore(r)>=C;}).length;
+    var steps=[["Total de leads",total],["Quentes",quentes],["Prontos",prontos],["Quentes e Prontos",both]];
+    el.innerHTML=steps.map(function(st){var pct=total?Math.round(100*st[1]/total):0;
+      return '<div class="fstep"><div class="fbar" style="width:'+pct+'%"></div><div class="fcontent"><span class="fname">'+st[0]+'</span><span class="fnums">'+st[1]+' · '+pct+'%</span></div></div>';}).join("");
   }
 
   function buildCanalFilter(){
@@ -505,21 +619,32 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
   }
 
   // ===== carga de dados =====
+  function initDates(){
+    if(datesInit)return;
+    var de=document.getElementById("f-de"),ate=document.getElementById("f-ate"),today=new Date();
+    var min=ALL.length?ALL.reduce(function(m,r){return r.data<m?r.data:m;},ALL[0].data):today;
+    if(min>today)min=today;
+    ate.value=ymd(today);ate.max=ymd(today);
+    de.value=ymd(min);de.max=ymd(today);
+    datesInit=true;
+  }
+
   function loadData(){
     if(!CONFIG.csvUrl){
       document.getElementById("demo-banner").classList.remove("hidden");
-      ALL=mockData();render();return;
+      ALL=mockData();scoreOk=true;initDates();render();return;
     }
     document.getElementById("demo-banner").classList.add("hidden");
     Papa.parse(CONFIG.csvUrl,{download:true,header:true,skipEmptyLines:true,complete:function(res){
       var headers=res.meta.fields||[];
       ALL=normalizeRows(res.data,headers);
+      initDates();
       render();
     },error:function(){document.getElementById("st-updated").textContent="erro ao carregar";}});
   }
 
-  document.getElementById("f-periodo").addEventListener("change",render);
-  document.getElementById("f-canal").addEventListener("change",render);
+  ["f-de","f-ate","f-canal"].forEach(function(id){var el=document.getElementById(id);if(el)el.addEventListener("change",render);});
+  document.getElementById("f-reset").addEventListener("click",function(){datesInit=false;initDates();render();});
   countdown();loadData();
   setInterval(loadData,CONFIG.refreshMs);
   document.addEventListener("visibilitychange",function(){if(!document.hidden)loadData();});
