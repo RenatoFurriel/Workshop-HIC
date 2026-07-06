@@ -545,7 +545,7 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
     rows.forEach(function(r){var k=r.renda+"||"+r.situacao;grid[k]=(grid[k]||0)+1;if(grid[k]>max)max=grid[k];});
     el.style.gridTemplateColumns="minmax(90px,1.2fr) repeat("+sits.length+",1fr)";
     var html='<div class="hcell hhead"></div>';
-    sits.forEach(function(s){html+='<div class="hcell hhead" title="'+s+'">'+shorten(s,14)+'</div>';});
+    sits.forEach(function(s){html+='<div class="hcell hhead" title="'+s+'">'+sitLabel(s)+'</div>';});
     rendas.forEach(function(rd){
       html+='<div class="hcell hrow-label" title="'+rd+'">'+shorten(rd,16)+'</div>';
       sits.forEach(function(s){var v=grid[rd+"||"+s]||0;var a=max?(v/max):0;
@@ -554,6 +554,14 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
     el.innerHTML=html;
   }
   function shorten(s,n){return s.length>n?s.slice(0,n-1)+"…":s;}
+  // Rótulo curto e fiel para a coluna "situação" (texto completo fica no tooltip)
+  function sitLabel(s){
+    var n=norm(s);
+    if(/transi/.test(n))return "Em transição";
+    if(/quero entrar|entrar no mercado/.test(n))return "Quer entrar em GRC TI";
+    if(/ja tenho|boa experi|ja atua/.test(n))return "Já atua em GRC/Cyber";
+    return shorten(s,22);
+  }
 
   function renderScoreDist(rows){
     var ctx=document.getElementById("c-scoredist");if(!ctx)return;destroy("c-scoredist");
