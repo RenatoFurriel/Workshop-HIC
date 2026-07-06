@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Painel de Leads · Workshop GRC TI · ITXPRO</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@500;600;700&family=Hanken+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --bg:#111214; --surface:#1A1C1F; --surface-2:#202327; --line:#2B2F33;
+  --orange:#FF5C00; --orange-hot:#FF7A1A; --orange-deep:#C23F00; --orange-tint:rgba(255,92,0,.14);
+  --on-orange:#1A0A00; --text:#EDEAE2; --muted:#B4BAC0; --dim:#7D848B;
+  --display:'Jost',-apple-system,sans-serif; --body:'Hanken Grotesk',-apple-system,sans-serif; --mono:'IBM Plex Mono',Menlo,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  background-color:var(--bg);
+  background-image:linear-gradient(rgba(74,85,96,.09) 1px,transparent 1px),linear-gradient(90deg,rgba(74,85,96,.09) 1px,transparent 1px);
+  background-size:34px 34px;
+  color:var(--text);font-family:var(--body);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1280px;margin:0 auto;padding:0 clamp(16px,3vw,32px)}
+h1,h2,h3{font-family:var(--display);font-weight:700;text-transform:uppercase;letter-spacing:.02em}
+
+/* topbar */
+header{position:sticky;top:0;z-index:20;background:rgba(17,18,20,.92);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:14px}
+.brand img{height:24px}
+.brand .sep{width:1px;height:22px;background:var(--line)}
+.brand .ttl{font-family:var(--display);font-weight:600;font-size:15px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.status{display:flex;align-items:center;gap:18px;font-family:var(--mono);font-size:11.5px;color:var(--dim);letter-spacing:.04em;text-transform:uppercase}
+.status .live{color:var(--orange)}
+.status .live::before{content:"● ";animation:blink 2.2s ease-in-out infinite}
+.status b{color:var(--text);font-weight:600}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+
+.demo-banner{background:var(--orange-tint);border-bottom:1px solid rgba(255,92,0,.3);color:var(--orange-hot);font-family:var(--mono);font-size:12px;letter-spacing:.03em;text-align:center;padding:8px 16px}
+.demo-banner.hidden{display:none}
+
+/* filters */
+.filters{display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:18px 0}
+.filters label{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
+.filters select{font-family:var(--body);font-size:13px;background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:pointer}
+.filters select:focus-visible{outline:2px solid var(--orange);outline-offset:1px}
+
+/* sections */
+.section{padding:8px 0 40px}
+.section-head{display:flex;flex-direction:column;margin:24px 0 18px}
+.kicker{font-family:var(--mono);font-weight:600;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--orange)}
+.section-head h2{font-size:clamp(18px,2.2vw,24px);color:var(--text);margin-top:4px}
+
+/* kpi cards */
+.kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+@media(max-width:900px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px}
+.kpi .label{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);margin-bottom:10px}
+.kpi .val{font-family:var(--display);font-weight:700;font-size:34px;line-height:1;color:var(--text)}
+.kpi .sub{font-family:var(--mono);font-size:11.5px;color:var(--orange);margin-top:8px}
+
+/* chart cards */
+.grid{display:grid;gap:14px}
+.g-2{grid-template-columns:1fr 1fr}
+.g-3{grid-template-columns:repeat(3,1fr)}
+.g-32{grid-template-columns:2fr 1fr}
+@media(max-width:900px){.g-2,.g-3,.g-32{grid-template-columns:1fr}}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;min-height:120px;position:relative}
+.card h3{font-size:14px;color:var(--text);letter-spacing:.03em;margin-bottom:4px;text-transform:none;font-family:var(--display);font-weight:600}
+.card .hint{font-family:var(--mono);font-size:10.5px;color:var(--dim);letter-spacing:.03em;margin-bottom:16px;text-transform:uppercase}
+.chart-box{position:relative;height:240px}
+.chart-box.tall{height:300px}
+
+/* empty state */
+.empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--dim);text-align:center;padding:20px}
+.empty svg{width:34px;height:34px;color:var(--line)}
+.empty .big{font-family:var(--display);font-weight:600;font-size:15px;color:var(--muted);text-transform:none}
+.empty .small{font-family:var(--mono);font-size:11px;letter-spacing:.03em}
+body.is-empty .chart-box canvas,body.is-empty .heatmap,body.is-empty .funnel{visibility:hidden}
+body:not(.is-empty) .empty{display:none}
+
+/* heatmap */
+.heatmap{display:grid;gap:4px;font-family:var(--mono);font-size:11px}
+.heatmap .hcell{padding:10px 8px;border-radius:6px;text-align:center;color:var(--text);background:var(--surface-2)}
+.heatmap .hhead{color:var(--dim);background:transparent;text-transform:uppercase;letter-spacing:.04em;font-size:10px;display:flex;align-items:center;justify-content:center}
+.heatmap .hrow-label{color:var(--muted);background:transparent;text-align:left;display:flex;align-items:center}
+
+/* funnel */
+.funnel{display:flex;flex-direction:column;gap:10px}
+.fstep{background:var(--surface-2);border-radius:8px;overflow:hidden;position:relative;height:52px;display:flex;align-items:center}
+.fbar{position:absolute;inset:0 auto 0 0;background:var(--orange);opacity:.9;border-radius:8px}
+.fstep .fcontent{position:relative;z-index:1;display:flex;justify-content:space-between;width:100%;padding:0 16px;align-items:center}
+.fstep .fname{font-family:var(--display);font-weight:600;font-size:13px;color:var(--on-orange);text-transform:uppercase;letter-spacing:.03em;mix-blend-mode:normal}
+.fstep .fnums{font-family:var(--mono);font-size:12px;color:var(--on-orange);font-weight:600}
+.fstep.dim .fbar{background:var(--surface-2)}
+.fstep.dim .fname,.fstep.dim .fnums{color:var(--muted)}
+
+footer{border-top:1px solid var(--line);padding:22px 0 40px;text-align:center}
+footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.04em}
+</style>
+</head>
+<body class="is-empty">
+
+<header>
+  <div class="wrap topbar">
+    <div class="brand">
+      <img src="marca-itxpro-branco.png" alt="ITXPRO">
+      <span class="sep"></span>
+      <span class="ttl">Painel de Leads · Workshop GRC TI</span>
+    </div>
+    <div class="status">
+      <span class="live" id="st-updated">atualizando…</span>
+      <span id="st-countdown">—</span>
+    </div>
+  </div>
+</header>
+
+<div class="demo-banner" id="demo-banner">MODO DEMONSTRAÇÃO · dados fictícios (a planilha ainda está vazia)</div>
+
+<main class="wrap">
+
+  <div class="filters">
+    <label for="f-periodo">Período</label>
+    <select id="f-periodo">
+      <option value="all">Todo o período</option>
+      <option value="7">Últimos 7 dias</option>
+      <option value="14">Últimos 14 dias</option>
+      <option value="30">Últimos 30 dias</option>
+    </select>
+    <label for="f-canal">Canal</label>
+    <select id="f-canal"><option value="all">Todos os canais</option></select>
+  </div>
+
+  <!-- KPIs -->
+  <section class="section" style="padding-top:0">
+    <div class="kpi-grid">
+      <div class="kpi"><div class="label">Total de leads</div><div class="val" id="k-total">0</div><div class="sub" id="k-total-sub">&nbsp;</div></div>
+      <div class="kpi"><div class="label">Leads hoje</div><div class="val" id="k-hoje">0</div><div class="sub" id="k-hoje-sub">&nbsp;</div></div>
+      <div class="kpi"><div class="label">Últimos 7 dias</div><div class="val" id="k-7d">0</div><div class="sub" id="k-7d-sub">&nbsp;</div></div>
+      <div class="kpi"><div class="label">Pontuação média</div><div class="val" id="k-score">0</div><div class="sub" id="k-score-sub">&nbsp;</div></div>
+      <div class="kpi"><div class="label">Confirmam ao vivo</div><div class="val" id="k-live">0%</div><div class="sub" id="k-live-sub">&nbsp;</div></div>
+    </div>
+  </section>
+
+  <!-- AQUISIÇÃO -->
+  <section class="section">
+    <div class="section-head"><span class="kicker">Aquisição</span><h2>De onde vêm os leads</h2></div>
+    <div class="grid g-32">
+      <div class="card"><h3>Leads ao longo do tempo</h3><div class="hint">diário + acumulado · marcador no dia do evento</div><div class="chart-box tall"><canvas id="c-time"></canvas><div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19V5m0 14h16M8 15l3-4 3 2 4-6"/></svg><span class="big">Aguardando os primeiros leads</span><span class="small">o gráfico aparece quando entrar o 1º cadastro</span></div></div></div>
+      <div class="card"><h3>Origem de mídia</h3><div class="hint">Google × Meta × orgânico</div><div class="chart-box tall"><canvas id="c-midia"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
+    </div>
+    <div class="grid g-2" style="margin-top:14px">
+      <div class="card"><h3>Como ficou sabendo</h3><div class="hint">canal auto-reportado</div><div class="chart-box"><canvas id="c-canal"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
+      <div class="card"><h3>Campanhas (utm_campaign)</h3><div class="hint">volume por campanha</div><div class="chart-box"><canvas id="c-utm"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
+    </div>
+  </section>
+
+  <!-- QUALIDADE & ICP -->
+  <section class="section">
+    <div class="section-head"><span class="kicker">Qualidade & ICP</span><h2>Quão bons são esses leads</h2></div>
+    <div class="grid g-2">
+      <div class="card"><h3>Distribuição de pontuação</h3><div class="hint">lead score do Respondi</div><div class="chart-box"><canvas id="c-score"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
+      <div class="card"><h3>Faixa de renda</h3><div class="hint">poder de compra</div><div class="chart-box"><canvas id="c-renda"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
+    </div>
+    <div class="grid g-32" style="margin-top:14px">
+      <div class="card"><h3>Renda × Situação</h3><div class="hint">onde está o público PRO-ready (mais quente = mais leads)</div><div class="heatmap" id="c-heat"></div><div class="empty"><span class="small">sem dados</span></div></div>
+      <div class="card"><h3>Situação atual</h3><div class="hint">Estagnado × Transição</div><div class="chart-box"><canvas id="c-situacao"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
+    </div>
+  </section>
+
+  <!-- PERFIL -->
+  <section class="section">
+    <div class="section-head"><span class="kicker">Perfil</span><h2>Quem é a audiência</h2></div>
+    <div class="grid g-3">
+      <div class="card"><h3>Estados</h3><div class="hint">top por volume</div><div class="chart-box"><canvas id="c-estado"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
+      <div class="card"><h3>Faixa etária</h3><div class="hint">&nbsp;</div><div class="chart-box"><canvas id="c-idade"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
+      <div class="card"><h3>Conhece o Roberto há</h3><div class="hint">audiência fria × quente</div><div class="chart-box"><canvas id="c-conhece"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
+    </div>
+  </section>
+
+  <!-- DECISÃO -->
+  <section class="section">
+    <div class="section-head"><span class="kicker">Decisão</span><h2>Para onde levar a verba</h2></div>
+    <div class="grid g-2">
+      <div class="card"><h3>Pontuação média por canal</h3><div class="hint">qual fonte traz o melhor lead, não só o mais barato</div><div class="chart-box"><canvas id="c-score-canal"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
+      <div class="card"><h3>Funil de qualidade</h3><div class="hint">quantos leads chegam qualificados e com intenção de ir ao vivo</div><div class="funnel" id="c-funnel"></div><div class="empty"><span class="small">sem dados</span></div></div>
+    </div>
+  </section>
+
+</main>
+
+<footer><div class="wrap"><p id="footer-note">ITXPRO · Painel interno de leads</p></div></footer>
+
+<script>
+(function(){
+  "use strict";
+
+  // ===== CONFIG =====
+  // Quando a aba "Dash" for publicada como CSV, cole a URL aqui:
+  var CONFIG = {
+    csvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQm-7UI1ww27w5GKp9_Tan7gNkT7DZN2Ftj4yumzREm5LwycM2RA5jUxxgph6ne7Fze3h7HZgaJYN0v/pub?gid=419366872&single=true&output=csv",  // aba "Dash" publicada (sem PII)
+    eventDate: "2026-07-25",                 // dia do workshop (marcador + contagem regressiva)
+    refreshMs: 5 * 60 * 1000                 // auto-refresh a cada 5 min
+  };
+
+  var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var ORANGE="#FF5C00", ORANGE2="#FF7A1A", DIM="#7D848B", LINE="#2B2F33", MUTED="#B4BAC0";
+  var PALETTE=["#FF5C00","#FF7A1A","#C23F00","#8a5a3c","#B4BAC0","#5F6A72","#E8A33D"];
+
+  // Chart.js defaults (tema escuro)
+  if(window.Chart){
+    Chart.defaults.color=MUTED;
+    Chart.defaults.borderColor=LINE;
+    Chart.defaults.font.family="'IBM Plex Mono', monospace";
+    Chart.defaults.font.size=11;
+    Chart.defaults.plugins.legend.display=false;
+    Chart.defaults.animation=reduceMotion?false:{duration:600};
+    Chart.defaults.plugins.tooltip.backgroundColor="#0d0e10";
+    Chart.defaults.plugins.tooltip.borderColor=LINE;
+    Chart.defaults.plugins.tooltip.borderWidth=1;
+    Chart.defaults.plugins.tooltip.titleColor="#EDEAE2";
+    Chart.defaults.plugins.tooltip.bodyColor=MUTED;
+    Chart.defaults.plugins.tooltip.padding=10;
+  }
+
+  // ===== helpers =====
+  function norm(s){return (s||"").toString().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").trim();}
+  function parseDate(v){
+    if(v instanceof Date) return v;
+    if(!v) return null;
+    var s=v.toString().trim();
+    var m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:[ T](\d{1,2}):(\d{2}))?/);
+    if(m) return new Date(+m[3],+m[2]-1,+m[1],+(m[4]||0),+(m[5]||0));
+    var d=new Date(s); return isNaN(d)?null:d;
+  }
+  function ymd(d){return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");}
+  function count(arr,keyFn){var m={};arr.forEach(function(r){var k=keyFn(r);if(k==null||k==="")return;m[k]=(m[k]||0)+1;});return m;}
+  function sortedEntries(obj,limit){var e=Object.entries(obj).sort(function(a,b){return b[1]-a[1];});return limit?e.slice(0,limit):e;}
+
+  // mapeia o cabeçalho (perguntas longas) para chaves internas por palavra-chave
+  function fieldFor(headers,keys){
+    for(var i=0;i<headers.length;i++){var h=norm(headers[i]);for(var k=0;k<keys.length;k++){if(h.indexOf(keys[k])>=0)return headers[i];}}
+    return null;
+  }
+  function buildMapper(headers){
+    return {
+      canal:fieldFor(headers,["ficou sabendo","como voce"]),
+      estado:fieldFor(headers,["estado","reside"]),
+      sexo:fieldFor(headers,["sexo"]),
+      idade:fieldFor(headers,["faixa etaria","etaria"]),
+      funcao:fieldFor(headers,["funcao","atividade"]),
+      situacao:fieldFor(headers,["situacao","se encontra"]),
+      expGRC:fieldFor(headers,["experiencia previa","governanca, riscos"]),
+      cobit:fieldFor(headers,["cobit"]),
+      conhece:fieldFor(headers,["conhece","roberto arteiro"]),
+      renda:fieldFor(headers,["renda"]),
+      aovivo:fieldFor(headers,["ao vivo","participar"]),
+      score:fieldFor(headers,["pontuacao","pontua"]),
+      data:fieldFor(headers,["data"]),
+      utm_source:fieldFor(headers,["utm_source"]),
+      utm_campaign:fieldFor(headers,["utm_campaign"]),
+      gclid:fieldFor(headers,["gclid"]),
+      fbclid:fieldFor(headers,["fbclid"])
+    };
+  }
+  function normalizeRows(raw,headers){
+    var map=buildMapper(headers);
+    return raw.map(function(o){
+      function g(key){return map[key]?o[map[key]]:"";}
+      return {
+        canal:(g("canal")||"").toString().trim()||"Não informado",
+        estado:(g("estado")||"").toString().trim(),
+        sexo:(g("sexo")||"").toString().trim(),
+        idade:(g("idade")||"").toString().trim(),
+        funcao:(g("funcao")||"").toString().trim(),
+        situacao:(g("situacao")||"").toString().trim(),
+        expGRC:(g("expGRC")||"").toString().trim(),
+        cobit:(g("cobit")||"").toString().trim(),
+        conhece:(g("conhece")||"").toString().trim(),
+        renda:(g("renda")||"").toString().trim(),
+        aovivo:(g("aovivo")||"").toString().trim(),
+        score:parseFloat((g("score")||"0").toString().replace(",","."))||0,
+        data:parseDate(g("data"))||new Date(),
+        utm_source:(g("utm_source")||"").toString().trim(),
+        utm_campaign:(g("utm_campaign")||"").toString().trim(),
+        gclid:(g("gclid")||"").toString().trim(),
+        fbclid:(g("fbclid")||"").toString().trim()
+      };
+    });
+  }
+
+  function midiaOf(r){
+    if(r.gclid) return "Google Ads";
+    if(r.fbclid) return "Meta Ads";
+    var s=norm(r.utm_source);
+    if(/goog/.test(s)) return "Google Ads";
+    if(/face|meta|insta|fb/.test(s)) return "Meta Ads";
+    if(s) return "Outros";
+    return "Orgânico";
+  }
+  function aovivoPos(r){return /sim|poss|vou|confirm|certeza/.test(norm(r.aovivo));}
+
+  // ===== dados fictícios (a planilha está vazia) =====
+  function mockData(){
+    var canais=["Instagram","YouTube","Indicação de amigo","E-mail","Google","LinkedIn"];
+    var estados=["SP","SP","SP","RJ","RJ","MG","PR","RS","SC","BA","PE","CE","DF","GO"];
+    var sexos=["Masculino","Masculino","Feminino"];
+    var idades=["18-24","25-34","25-34","35-44","35-44","45-54","55+"];
+    var funcoes=["Analista de Segurança","Analista de GRC","Coordenador de TI","Gerente de TI","Consultor","Auditor","Estudante/Transição"];
+    var situacoes=["Empregado, quero crescer","Empregado, estagnado","Em transição de carreira","Desempregado","Autônomo/Consultor"];
+    var exps=["Sim, mais de 3 anos","Sim, até 3 anos","Alguma experiência","Nenhuma"];
+    var cobits=["Nenhuma","Básica","Intermediária","Avançada"];
+    var conhece=["Não conheço","Menos de 6 meses","6 meses a 1 ano","Mais de 1 ano","Sou aluno/mentorado"];
+    var rendas=["Até R$ 5 mil","R$ 5 a 8 mil","R$ 8 a 12 mil","R$ 12 a 18 mil","R$ 18 a 25 mil","Acima de R$ 25 mil"];
+    var aovivos=["Sim","Sim","Sim","Talvez","Não"];
+    var campaigns=["hic-frio-video","hic-interesse-carreira","retargeting-lp","lookalike-grc","organico"];
+    var srcs=[["google","gclid"],["facebook","fbclid"],["instagram","fbclid"],["google","gclid"],["",""]];
+    function pick(a){return a[Math.floor(Math.random()*a.length)];}
+    var rows=[],today=new Date(),N=184;
+    for(var i=0;i<N;i++){
+      var daysAgo=Math.floor(Math.pow(Math.random(),1.7)*14); // mais recente pesa mais
+      var d=new Date(today);d.setDate(d.getDate()-daysAgo);d.setHours(8+Math.floor(Math.random()*13),Math.floor(Math.random()*60));
+      var sc=srcs[Math.floor(Math.random()*srcs.length)];
+      var renda=pick(rendas), base=rendas.indexOf(renda);
+      rows.push({
+        canal:pick(canais),estado:pick(estados),sexo:pick(sexos),idade:pick(idades),funcao:pick(funcoes),
+        situacao:pick(situacoes),expGRC:pick(exps),cobit:pick(cobits),conhece:pick(conhece),renda:renda,
+        aovivo:pick(aovivos),
+        score:Math.min(100,Math.max(5,Math.round(30+base*7+Math.random()*45))),
+        data:d,
+        utm_source:sc[0],utm_campaign:sc[0]?pick(campaigns):"",
+        gclid:sc[1]==="gclid"?"x":"",fbclid:sc[1]==="fbclid"?"x":""
+      });
+    }
+    return rows;
+  }
+
+  // ===== estado / filtros =====
+  var ALL=[], charts={};
+  function applyFilters(){
+    var per=document.getElementById("f-periodo").value;
+    var can=document.getElementById("f-canal").value;
+    var now=new Date();
+    return ALL.filter(function(r){
+      if(per!=="all"){var diff=(now-r.data)/86400000;if(diff>+per)return false;}
+      if(can!=="all"&&r.canal!==can)return false;
+      return true;
+    });
+  }
+
+  // ===== charts =====
+  function destroy(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
+  function barChart(id,labels,data,opts){
+    opts=opts||{};destroy(id);var ctx=document.getElementById(id);if(!ctx)return;
+    charts[id]=new Chart(ctx,{type:"bar",data:{labels:labels,datasets:[{data:data,backgroundColor:opts.color||ORANGE,borderRadius:5,maxBarThickness:opts.horizontal?22:46}]},
+      options:{indexAxis:opts.horizontal?"y":"x",responsive:true,maintainAspectRatio:false,
+        scales:{x:{grid:{color:"rgba(43,47,51,.6)"},ticks:{color:DIM}},y:{grid:{color:"rgba(43,47,51,.6)"},ticks:{color:DIM}}}}});
+  }
+  function doughnut(id,labels,data){
+    destroy(id);var ctx=document.getElementById(id);if(!ctx)return;
+    charts[id]=new Chart(ctx,{type:"doughnut",data:{labels:labels,datasets:[{data:data,backgroundColor:PALETTE,borderColor:"#1A1C1F",borderWidth:2}]},
+      options:{responsive:true,maintainAspectRatio:false,cutout:"64%",plugins:{legend:{display:true,position:"right",labels:{color:MUTED,boxWidth:10,font:{size:11}}}}}});
+  }
+
+  function render(){
+    var rows=applyFilters();
+    document.body.classList.toggle("is-empty",rows.length===0);
+    var now=new Date();
+
+    // KPIs
+    var todayStr=ymd(now);
+    var hoje=rows.filter(function(r){return ymd(r.data)===todayStr;}).length;
+    var d7=rows.filter(function(r){return (now-r.data)/86400000<=7;}).length;
+    var avg=rows.length?Math.round(rows.reduce(function(s,r){return s+r.score;},0)/rows.length):0;
+    var livePct=rows.length?Math.round(100*rows.filter(aovivoPos).length/rows.length):0;
+    setNum("k-total",rows.length);setNum("k-hoje",hoje);setNum("k-7d",d7);setNum("k-score",avg);
+    document.getElementById("k-live").textContent=livePct+"%";
+    document.getElementById("k-total-sub").textContent=rows.length?("+"+hoje+" hoje"):" ";
+    document.getElementById("k-score-sub").textContent=rows.length?"de 0 a 100":" ";
+    document.getElementById("k-live-sub").textContent=rows.length?(rows.filter(aovivoPos).length+" pessoas"):" ";
+    document.getElementById("k-hoje-sub").textContent=" ";document.getElementById("k-7d-sub").textContent=" ";
+
+    if(rows.length===0){return;}
+
+    // série temporal
+    var byDay=count(rows,function(r){return ymd(r.data);});
+    var days=Object.keys(byDay).sort();
+    var cum=0, cumArr=days.map(function(d){cum+=byDay[d];return cum;});
+    destroy("c-time");
+    charts["c-time"]=new Chart(document.getElementById("c-time"),{
+      data:{labels:days.map(function(d){var p=d.split("-");return p[2]+"/"+p[1];}),
+        datasets:[
+          {type:"line",label:"Acumulado",data:cumArr,borderColor:ORANGE,backgroundColor:"rgba(255,92,0,.12)",fill:true,tension:.3,pointRadius:0,yAxisID:"y1"},
+          {type:"bar",label:"Por dia",data:days.map(function(d){return byDay[d];}),backgroundColor:"rgba(255,122,26,.55)",borderRadius:4,maxBarThickness:22,yAxisID:"y"}
+        ]},
+      options:{responsive:true,maintainAspectRatio:false,
+        plugins:{legend:{display:true,labels:{color:MUTED,boxWidth:10}}},
+        scales:{x:{grid:{display:false},ticks:{color:DIM,maxRotation:0,autoSkip:true}},
+          y:{position:"left",grid:{color:"rgba(43,47,51,.6)"},ticks:{color:DIM,precision:0}},
+          y1:{position:"right",grid:{display:false},ticks:{color:DIM,precision:0}}}}});
+
+    // mídia
+    var mid=count(rows,midiaOf);doughnut("c-midia",Object.keys(mid),Object.values(mid));
+    // canal
+    var can=sortedEntries(count(rows,function(r){return r.canal;}),8);
+    barChart("c-canal",can.map(function(e){return e[0];}),can.map(function(e){return e[1];}),{horizontal:true});
+    // utm campaign
+    var utm=sortedEntries(count(rows.filter(function(r){return r.utm_campaign;}),function(r){return r.utm_campaign;}),8);
+    barChart("c-utm",utm.map(function(e){return e[0];}),utm.map(function(e){return e[1];}),{horizontal:true,color:ORANGE2});
+    // score histogram
+    var bins=[0,0,0,0,0],blab=["0-20","21-40","41-60","61-80","81-100"];
+    rows.forEach(function(r){var b=Math.min(4,Math.floor(r.score/20));bins[b]++;});
+    barChart("c-score",blab,bins);
+    // renda
+    var rendaOrder=orderByFreqOrList(rows,"renda");
+    barChart("c-renda",rendaOrder.map(function(e){return e[0];}),rendaOrder.map(function(e){return e[1];}));
+    // situação
+    var sit=sortedEntries(count(rows,function(r){return r.situacao;}));
+    doughnut("c-situacao",sit.map(function(e){return e[0];}),sit.map(function(e){return e[1];}));
+    // estado
+    var est=sortedEntries(count(rows,function(r){return r.estado;}),10);
+    barChart("c-estado",est.map(function(e){return e[0];}),est.map(function(e){return e[1];}),{horizontal:true});
+    // idade
+    var idd=sortedEntries(count(rows,function(r){return r.idade;}));
+    barChart("c-idade",idd.map(function(e){return e[0];}),idd.map(function(e){return e[1];}));
+    // conhece
+    var con=sortedEntries(count(rows,function(r){return r.conhece;}));
+    barChart("c-conhece",con.map(function(e){return e[0];}),con.map(function(e){return e[1];}),{horizontal:true,color:ORANGE2});
+    // score médio por canal
+    var scoreByCanal=avgBy(rows,function(r){return r.canal;},function(r){return r.score;});
+    var sbc=Object.entries(scoreByCanal).sort(function(a,b){return b[1]-a[1];});
+    barChart("c-score-canal",sbc.map(function(e){return e[0];}),sbc.map(function(e){return Math.round(e[1]);}),{horizontal:true});
+
+    renderHeatmap(rows);
+    renderFunnel(rows,avg);
+    buildCanalFilter();
+    stampUpdated();
+  }
+
+  function orderByFreqOrList(rows,key){return sortedEntries(count(rows,function(r){return r[key];}));}
+  function avgBy(rows,keyFn,valFn){var s={},c={};rows.forEach(function(r){var k=keyFn(r);if(!k)return;s[k]=(s[k]||0)+valFn(r);c[k]=(c[k]||0)+1;});var out={};Object.keys(s).forEach(function(k){out[k]=s[k]/c[k];});return out;}
+
+  function renderHeatmap(rows){
+    var el=document.getElementById("c-heat");if(!el)return;
+    var rendas=Object.keys(count(rows,function(r){return r.renda;}));
+    var sits=Object.keys(count(rows,function(r){return r.situacao;}));
+    if(!rendas.length||!sits.length){el.innerHTML="";return;}
+    var grid={},max=0;
+    rows.forEach(function(r){var k=r.renda+"||"+r.situacao;grid[k]=(grid[k]||0)+1;if(grid[k]>max)max=grid[k];});
+    el.style.gridTemplateColumns="minmax(90px,1.2fr) repeat("+sits.length+",1fr)";
+    var html='<div class="hcell hhead"></div>';
+    sits.forEach(function(s){html+='<div class="hcell hhead" title="'+s+'">'+shorten(s,14)+'</div>';});
+    rendas.forEach(function(rd){
+      html+='<div class="hcell hrow-label" title="'+rd+'">'+shorten(rd,16)+'</div>';
+      sits.forEach(function(s){var v=grid[rd+"||"+s]||0;var a=max?(v/max):0;
+        html+='<div class="hcell" style="background:rgba(255,92,0,'+(0.08+a*0.85).toFixed(2)+');color:'+(a>0.5?"#1A0A00":"#EDEAE2")+'">'+(v||"")+'</div>';});
+    });
+    el.innerHTML=html;
+  }
+  function shorten(s,n){return s.length>n?s.slice(0,n-1)+"…":s;}
+
+  function renderFunnel(rows,avg){
+    var el=document.getElementById("c-funnel");if(!el)return;
+    var total=rows.length;
+    var qualif=rows.filter(function(r){return r.score>=avg;}).length;
+    var live=rows.filter(aovivoPos).length;
+    var both=rows.filter(function(r){return r.score>=avg&&aovivoPos(r);}).length;
+    var steps=[["Total de leads",total],["Qualificados (score ≥ média)",qualif],["Confirmam ao vivo",live],["Qualificados E ao vivo",both]];
+    el.innerHTML=steps.map(function(st,i){
+      var pct=total?Math.round(100*st[1]/total):0;
+      return '<div class="fstep'+(i===steps.length-1?"":"")+'"><div class="fbar" style="width:'+pct+'%"></div><div class="fcontent"><span class="fname">'+st[0]+'</span><span class="fnums">'+st[1]+' · '+pct+'%</span></div></div>';
+    }).join("");
+  }
+
+  function buildCanalFilter(){
+    var sel=document.getElementById("f-canal");if(sel.dataset.built)return;
+    var canais=Object.keys(count(ALL,function(r){return r.canal;})).sort();
+    canais.forEach(function(c){var o=document.createElement("option");o.value=c;o.textContent=c;sel.appendChild(o);});
+    sel.dataset.built="1";
+  }
+
+  function setNum(id,n){
+    var el=document.getElementById(id);if(!el)return;
+    var final=n.toLocaleString("pt-BR");
+    if(reduceMotion){el.textContent=final;return;}
+    var dur=600,t0=performance.now(),done=false;
+    function step(t){var p=Math.min(1,(t-t0)/dur);el.textContent=Math.round(n*(1-Math.pow(1-p,3))).toLocaleString("pt-BR");if(p<1)requestAnimationFrame(step);else done=true;}
+    requestAnimationFrame(step);
+    setTimeout(function(){if(!done)el.textContent=final;},800); // à prova de aba em segundo plano
+  }
+
+  function stampUpdated(){
+    var d=new Date();
+    document.getElementById("st-updated").textContent="atualizado "+String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");
+  }
+  function countdown(){
+    var ev=new Date(CONFIG.eventDate+"T09:00:00");var now=new Date();
+    var diff=Math.ceil((ev-now)/86400000);
+    var el=document.getElementById("st-countdown");
+    el.textContent=diff>0?("faltam "+diff+" dias"):(diff===0?"é hoje!":"evento realizado");
+  }
+
+  // ===== carga de dados =====
+  function loadData(){
+    if(!CONFIG.csvUrl){
+      document.getElementById("demo-banner").classList.remove("hidden");
+      ALL=mockData();render();return;
+    }
+    document.getElementById("demo-banner").classList.add("hidden");
+    Papa.parse(CONFIG.csvUrl,{download:true,header:true,skipEmptyLines:true,complete:function(res){
+      var headers=res.meta.fields||[];
+      ALL=normalizeRows(res.data,headers);
+      render();
+    },error:function(){document.getElementById("st-updated").textContent="erro ao carregar";}});
+  }
+
+  document.getElementById("f-periodo").addEventListener("change",render);
+  document.getElementById("f-canal").addEventListener("change",render);
+  countdown();loadData();
+  setInterval(loadData,CONFIG.refreshMs);
+  document.addEventListener("visibilitychange",function(){if(!document.hidden)loadData();});
+})();
+</script>
+</body>
+</html>
