@@ -643,16 +643,22 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
   countdown();loadData();
   setInterval(function(){if(!document.hidden)loadData();},CONFIG.refreshMs);
 
-  // Anti-sumico: quando a aba/janela volta a ter foco, o navegador pode ter
-  // descartado os pixels do canvas enquanto ficou ociosa/em segundo plano.
-  // render() reconstroi os graficos a partir dos dados em memoria (sem rede),
-  // entao repintar sempre recupera. Cobrimos os 3 eventos porque
-  // visibilitychange NAO dispara ao so trocar de janela/app (isso e "focus"),
-  // so ao trocar de aba ou minimizar.
-  function repaint(){if(!document.hidden && ALL.length)render();}
-  document.addEventListener("visibilitychange",function(){if(!document.hidden)loadData();});
-  window.addEventListener("focus",repaint);
-  window.addEventListener("pageshow",repaint);
+  // Anti-sumico: no macOS, Chrome/Safari podem descartar a memoria de pixels
+  // dos canvas quando a pagina fica ociosa/em segundo plano (o canvas fica em
+  // branco e NENHUM evento avisa). chart.draw() redesenha os mesmos pixels a
+  // partir do estado ja calculado: sem rede, sem recalculo, sem animacao --
+  // invisivel se nada mudou. Rodamos ao voltar o foco/aba e num watchdog de
+  // 15s, entao qualquer purge se recupera sozinho em segundos.
+  function redrawAll(){
+    for(var id in charts){
+      var ch=charts[id]; if(!ch) continue;
+      try{ch.draw();}catch(e){try{ch.update("none");}catch(e2){}}
+    }
+  }
+  document.addEventListener("visibilitychange",function(){if(!document.hidden){redrawAll();loadData();}});
+  window.addEventListener("focus",redrawAll);
+  window.addEventListener("pageshow",redrawAll);
+  setInterval(function(){if(!document.hidden)redrawAll();},15000);
 })();
 </script>
 </body>
