@@ -59,7 +59,8 @@ header{position:sticky;top:0;z-index:20;background:rgba(17,18,20,.92);backdrop-f
 .section-head h2{font-size:clamp(18px,2.2vw,24px);color:var(--text);margin-top:4px}
 
 /* kpi cards */
-.kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+.kpi-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:14px}
+@media(max-width:1200px){.kpi-grid{grid-template-columns:repeat(4,1fr)}}
 @media(max-width:900px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}
 .kpi{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px}
 .kpi .label{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);margin-bottom:10px}
@@ -168,6 +169,8 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
       <div class="kpi"><div class="label">Score médio</div><div class="val" id="k-temp">—</div><div class="sub" id="k-temp-sub">&nbsp;</div></div>
       <div class="kpi"><div class="label">Leads quentes</div><div class="val" id="k-pront">—</div><div class="sub" id="k-pront-sub">&nbsp;</div></div>
       <div class="kpi"><div class="label">% quentes</div><div class="val" id="k-qp">—</div><div class="sub" id="k-qp-sub">&nbsp;</div></div>
+      <div class="kpi"><div class="label">Fit START</div><div class="val" id="k-fit-start">—</div><div class="sub" id="k-fit-start-sub">&nbsp;</div></div>
+      <div class="kpi"><div class="label">Fit PRO</div><div class="val" id="k-fit-pro">—</div><div class="sub" id="k-fit-pro-sub">&nbsp;</div></div>
     </div>
   </section>
 
@@ -209,6 +212,28 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
     <div class="grid g-2" style="margin-top:14px">
       <div class="card"><h3>Score médio por canal</h3><div class="hint">qual fonte traz o melhor lead</div><div class="chart-box"><canvas id="c-scorecanal"></canvas><div class="empty"><span class="small">sem dados de score</span></div></div></div>
       <div class="card"><h3>Classificação dos leads</h3><div class="hint">quente · morno · frio</div><div class="tiers" id="c-tiers"></div><div class="empty"><span class="small">sem dados de score</span></div></div>
+    </div>
+  </section>
+
+  <!-- FIT DE PRODUTO -->
+  <section class="section" id="sec-fit">
+    <div class="section-head"><span class="kicker">Fit · Produto ideal</span><h2>Fit com os produtos</h2></div>
+    <div class="grid g-32">
+      <div class="card"><h3>Prioridade comercial</h3><div class="hint">fit de produto × temperatura do score (mais quente = mais leads)</div><div class="heatmap" id="c-fitmatrix"></div><div class="empty"><span class="small">sem dados</span></div></div>
+      <div class="card score-how">
+        <h3>ⓘ Como calculamos o fit</h3><div class="hint">régua do Playbook Comercial · ajustável no código</div>
+        <p class="how-lead">A situação atual define o produto:</p>
+        <ul class="how-list">
+          <li><b>PRO</b> <span>"Já tenho uma boa experiência em GRC TI ou Cyber"</span></li>
+          <li><b>START</b> <span>"Estou em transição de carreira" ou "Quero entrar no mercado de GRC TI"</span></li>
+          <li><b>Fit Forte</b> <span>2+ sinais da persona · PRO: experiência Sim, 35+, renda 10K+, COBIT · START: 25–44, aceitaria o desafio, começando do zero/indireta</span></li>
+        </ul>
+        <p class="how-foot">Regra do playbook: transição ou recolocação vai para o <b style="color:#FF5C00">START</b>, mesmo com experiência.</p>
+      </div>
+    </div>
+    <div class="grid g-2" style="margin-top:14px">
+      <div class="card"><h3>Distribuição por produto</h3><div class="hint">START × PRO × a avaliar</div><div class="chart-box"><canvas id="c-fitprod"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
+      <div class="card"><h3>Força do fit</h3><div class="hint">quantos sinais da persona batem</div><div class="chart-box"><canvas id="c-fitforca"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
     </div>
   </section>
 
@@ -378,6 +403,34 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
   function tierOf(sc){return sc>=SCORE_CONFIG.quente?"Quente":(sc>=SCORE_CONFIG.morno?"Morno":"Frio");}
   function tierColor(sc){return sc>=SCORE_CONFIG.quente?ORANGE:(sc>=SCORE_CONFIG.morno?"#E8A33D":"#5F6A72");}
 
+  // ===== Fit de produto (regras do Playbook Comercial ITXPRO) =====
+  // Situacao define o produto (regra de ouro: transicao/recolocacao -> START,
+  // mesmo com experiencia). Forca = quantos sinais da persona batem (>=2 Forte).
+  var FIT_CONFIG = {
+    pro: /ja tenho|boa experiencia/,
+    start: /transicao|quero entrar/,
+    forteMin: 2,
+    sinaisPro: [
+      function(r){return /^sim/.test(norm(r.expGRC));},                       // ja tem experiencia previa
+      function(r){return /35 a 44|45 a 54|45 anos|55|acima de 4/.test(norm(r.idade));}, // persona 35+
+      function(r){return rendaScore(r.renda)>=16;},                           // renda >= 10K
+      function(r){return /certifica/.test(norm(r.cobit));}                    // COBIT certificado
+    ],
+    sinaisStart: [
+      function(r){return /25 a 34|35 a 44/.test(norm(r.idade));},             // persona 28-45
+      function(r){return /sim/.test(norm(r.aceitar));},                       // aceitaria o desafio
+      function(r){return /zero|indireta/.test(norm(r.expGRC));}               // comecando/indireta
+    ]
+  };
+  function fitOf(r){
+    var st=norm(r.situacao), sinais;
+    if(FIT_CONFIG.pro.test(st)) sinais=FIT_CONFIG.sinaisPro;
+    else if(FIT_CONFIG.start.test(st)) sinais=FIT_CONFIG.sinaisStart;
+    else return {produto:"A avaliar", forca:""};
+    var n=0; sinais.forEach(function(f){try{if(f(r))n++;}catch(e){}});
+    return {produto:FIT_CONFIG.pro.test(st)?"PRO":"START", forca:n>=FIT_CONFIG.forteMin?"Forte":"Médio"};
+  }
+
   // ===== dados fictícios (a planilha está vazia) =====
   function mockData(){
     var canais=["Instagram","YouTube","Indicação de amigo","E-mail","Google","LinkedIn"];
@@ -460,6 +513,49 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
     }
   }
 
+  function FIT_KPIS(rows){
+    function t(id,v){var el=document.getElementById(id);if(el)el.textContent=v;}
+    var st=0,pr=0;
+    rows.forEach(function(r){var f=fitOf(r);if(f.produto==="START")st++;else if(f.produto==="PRO")pr++;});
+    if(rows.length){
+      setNum("k-fit-start",st);setNum("k-fit-pro",pr);
+      t("k-fit-start-sub",Math.round(100*st/rows.length)+"% do total");
+      t("k-fit-pro-sub",Math.round(100*pr/rows.length)+"% do total");
+    } else {
+      t("k-fit-start","—");t("k-fit-pro","—");
+      t("k-fit-start-sub"," ");t("k-fit-pro-sub"," ");
+    }
+  }
+
+  function renderFit(rows){
+    var fits=rows.map(function(r){return {f:fitOf(r),r:r};});
+    var byProd=count(fits,function(x){return x.f.produto;});
+    doughnut("c-fitprod",Object.keys(byProd),Object.values(byProd));
+    var forcas=["START Forte","START Médio","PRO Forte","PRO Médio"];
+    var fc={};forcas.forEach(function(k){fc[k]=0;});
+    fits.forEach(function(x){var k=x.f.produto+" "+x.f.forca;if(fc[k]!=null)fc[k]++;});
+    barChart("c-fitforca",forcas,forcas.map(function(k){return fc[k];}),{horizontal:true});
+    var el=document.getElementById("c-fitmatrix");
+    if(el){
+      if(!scoreOk){el.innerHTML="";}
+      else{
+        var prods=["PRO","START","A avaliar"].filter(function(p){return byProd[p];});
+        var tiers=["Quente","Morno","Frio"];
+        var grid={},max=0;
+        fits.forEach(function(x){var k=x.f.produto+"||"+tierOf(leadScore(x.r));grid[k]=(grid[k]||0)+1;if(grid[k]>max)max=grid[k];});
+        el.style.gridTemplateColumns="minmax(90px,1.2fr) repeat("+tiers.length+",1fr)";
+        var html='<div class="hcell hhead"></div>';
+        tiers.forEach(function(tt){html+='<div class="hcell hhead">'+tt+'</div>';});
+        prods.forEach(function(p){
+          html+='<div class="hcell hrow-label">'+p+'</div>';
+          tiers.forEach(function(tt){var v=grid[p+"||"+tt]||0;var a=max?(v/max):0;
+            html+='<div class="hcell" style="background:rgba(255,92,0,'+(0.08+a*0.85).toFixed(2)+');color:'+(a>0.5?"#1A0A00":"#EDEAE2")+'">'+(v||"")+'</div>';});
+        });
+        el.innerHTML=html;
+      }
+    }
+  }
+
   function render(){
     var rows=applyFilters();
     document.body.classList.toggle("is-empty",rows.length===0);
@@ -471,7 +567,7 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
     var d7=rows.filter(function(r){return (now-r.data)/86400000<=7;}).length;
     var avg=rows.length?Math.round(rows.reduce(function(s,r){return s+r.score;},0)/rows.length):0;
     var livePct=rows.length?Math.round(100*rows.filter(aovivoPos).length/rows.length):0;
-    setNum("k-total",rows.length);setNum("k-hoje",hoje);SCORE_KPIS(rows);
+    setNum("k-total",rows.length);setNum("k-hoje",hoje);SCORE_KPIS(rows);FIT_KPIS(rows);
     document.body.classList.toggle("no-score", !scoreOk);
     document.getElementById("k-total-sub").textContent=rows.length?("+"+hoje+" hoje"):" ";
     
@@ -532,6 +628,7 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
       barChart("c-scorecanal",sbc.map(function(e){return e[0];}),sbc.map(function(e){return Math.round(e[1]);}),{horizontal:true});
     }
 
+    renderFit(rows);
     renderHeatmap(rows);
     buildCanalFilter();
     stampUpdated();
