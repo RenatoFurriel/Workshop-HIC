@@ -1,13 +1,17 @@
-# Gera lp-workshop-grc-ti-v2-greatpages.html a partir da lp-workshop-grc-ti-v2.html.
-# Uso: python3 build_greatpages.py (na pasta do projeto). Requer Pillow.
+# Gera a versao GreatPages (<nome>-greatpages.html) a partir de <nome>.html.
+# Uso: python3 build_greatpages.py [nome-base]   (padrao: lp-workshop-grc-ti-v2)
+#      python3 build_greatpages.py lp-workshop-grc-ti-b
+# Requer Pillow.
 import base64
 import io
 import os
 import re
+import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-SRC = os.path.join(HERE, "lp-workshop-grc-ti-v2.html")
-OUT = os.path.join(HERE, "lp-workshop-grc-ti-v2-greatpages.html")
+NAME = sys.argv[1] if len(sys.argv) > 1 else "lp-workshop-grc-ti-v2"
+SRC = os.path.join(HERE, NAME + ".html")
+OUT = os.path.join(HERE, NAME + "-greatpages.html")
 PHOTO = os.path.join(HERE, "roberto-circulo.png")
 LOGO = os.path.join(HERE, "marca-itxpro-branco.png")
 
