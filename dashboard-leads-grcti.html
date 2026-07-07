@@ -222,13 +222,13 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
       <div class="card"><h3>Prioridade comercial</h3><div class="hint">fit de produto × temperatura do score (mais quente = mais leads)</div><div class="heatmap" id="c-fitmatrix"></div><div class="empty"><span class="small">sem dados</span></div></div>
       <div class="card score-how">
         <h3>ⓘ Como calculamos o fit</h3><div class="hint">régua do Playbook Comercial · ajustável no código</div>
-        <p class="how-lead">A situação atual define o produto:</p>
+<p class="how-lead">O cargo define o produto:</p>
         <ul class="how-list">
-          <li><b>PRO</b> <span>"Já tenho uma boa experiência em GRC TI ou Cyber"</span></li>
-          <li><b>START</b> <span>"Estou em transição de carreira" ou "Quero entrar no mercado de GRC TI"</span></li>
+          <li><b>PRO</b> <span>Especialista em diante: Especialista, Coordenador, Gerente, Consultor, Diretor...</span></li>
+          <li><b>START</b> <span>Demais funções e atividades</span></li>
           <li><b>Fit Forte</b> <span>2+ sinais da persona · PRO: experiência Sim, 35+, renda 10K+, COBIT · START: 25–44, aceitaria o desafio, começando do zero/indireta</span></li>
         </ul>
-        <p class="how-foot">Regra do playbook: transição ou recolocação vai para o <b style="color:#FF5C00">START</b>, mesmo com experiência.</p>
+        <p class="how-foot">Desempregado é sempre <b style="color:#FF5C00">START</b>, independente do cargo.</p>
       </div>
     </div>
     <div class="grid g-2" style="margin-top:14px">
@@ -403,12 +403,14 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
   function tierOf(sc){return sc>=SCORE_CONFIG.quente?"Quente":(sc>=SCORE_CONFIG.morno?"Morno":"Frio");}
   function tierColor(sc){return sc>=SCORE_CONFIG.quente?ORANGE:(sc>=SCORE_CONFIG.morno?"#E8A33D":"#5F6A72");}
 
-  // ===== Fit de produto (regras do Playbook Comercial ITXPRO) =====
-  // Situacao define o produto (regra de ouro: transicao/recolocacao -> START,
-  // mesmo com experiencia). Forca = quantos sinais da persona batem (>=2 Forte).
+  // ===== Fit de produto (regra do Renato, 07/07) =====
+  // O CARGO define o produto: Especialista em diante (Especialista, Coordenador,
+  // Gerente, Consultor, Diretor...) -> PRO; qualquer outro -> START.
+  // Excecao: desempregado e sempre START, independente do cargo.
+  // Forca = quantos sinais da persona batem (>=2 Forte).
   var FIT_CONFIG = {
-    pro: /ja tenho|boa experiencia/,
-    start: /transicao|quero entrar/,
+    cargoPro: /especialista|coordenador|gerente|consultor|supervisor|diretor|head|lider|arquitet|gestor|ciso|executivo/,
+    desempregado: /desempregad|recoloca|sem emprego/,
     forteMin: 2,
     sinaisPro: [
       function(r){return /^sim/.test(norm(r.expGRC));},                       // ja tem experiencia previa
@@ -423,12 +425,12 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
     ]
   };
   function fitOf(r){
-    var st=norm(r.situacao), sinais;
-    if(FIT_CONFIG.pro.test(st)) sinais=FIT_CONFIG.sinaisPro;
-    else if(FIT_CONFIG.start.test(st)) sinais=FIT_CONFIG.sinaisStart;
-    else return {produto:"A avaliar", forca:""};
-    var n=0; sinais.forEach(function(f){try{if(f(r))n++;}catch(e){}});
-    return {produto:FIT_CONFIG.pro.test(st)?"PRO":"START", forca:n>=FIT_CONFIG.forteMin?"Forte":"Médio"};
+    var fn=norm(r.funcao), st=norm(r.situacao);
+    var desemp=FIT_CONFIG.desempregado.test(fn)||FIT_CONFIG.desempregado.test(st);
+    var isPro=!desemp && FIT_CONFIG.cargoPro.test(fn);
+    var sinais=isPro?FIT_CONFIG.sinaisPro:FIT_CONFIG.sinaisStart, n=0;
+    sinais.forEach(function(f){try{if(f(r))n++;}catch(e){}});
+    return {produto:isPro?"PRO":"START", forca:n>=FIT_CONFIG.forteMin?"Forte":"Médio"};
   }
 
   // ===== dados fictícios (a planilha está vazia) =====
