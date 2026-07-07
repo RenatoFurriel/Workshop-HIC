@@ -59,7 +59,8 @@ header{position:sticky;top:0;z-index:20;background:rgba(17,18,20,.92);backdrop-f
 .section-head h2{font-size:clamp(18px,2.2vw,24px);color:var(--text);margin-top:4px}
 
 /* kpi cards */
-.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.kpi-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:14px}
+@media(max-width:1200px){.kpi-grid{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:900px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}
 .kpi{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px}
 .kpi .label{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);margin-bottom:10px}
@@ -124,7 +125,7 @@ body:not(.is-empty) .empty{display:none}
 /* estado "aguardando score": some scatter/funil/temp-canal quando score indisponível */
 body.no-score #c-scoredist,body.no-score #c-scorecanal,body.no-score #c-tiers{visibility:hidden}
 body:not(.no-score) #score-empty,body:not(.no-score) #sec-score .empty{display:none}
-body.no-score #k-temp,body.no-score #k-pront,body.no-score #k-qp{font-size:15px;color:var(--dim)}
+body.no-score #k-temp{font-size:15px;color:var(--dim)}
 
 footer{border-top:1px solid var(--line);padding:22px 0 40px;text-align:center}
 footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.04em}
@@ -166,8 +167,6 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
       <div class="kpi"><div class="label">Total de leads</div><div class="val" id="k-total">0</div><div class="sub" id="k-total-sub">&nbsp;</div></div>
       <div class="kpi"><div class="label">Leads hoje</div><div class="val" id="k-hoje">0</div><div class="sub" id="k-hoje-sub">&nbsp;</div></div>
       <div class="kpi"><div class="label">Score médio</div><div class="val" id="k-temp">—</div><div class="sub" id="k-temp-sub">&nbsp;</div></div>
-      <div class="kpi"><div class="label">Leads quentes</div><div class="val" id="k-pront">—</div><div class="sub" id="k-pront-sub">&nbsp;</div></div>
-      <div class="kpi"><div class="label">% quentes</div><div class="val" id="k-qp">—</div><div class="sub" id="k-qp-sub">&nbsp;</div></div>
       <div class="kpi"><div class="label">Renda média</div><div class="val" id="k-renda">—</div><div class="sub" id="k-renda-sub">&nbsp;</div></div>
       <div class="kpi"><div class="label">Fit START</div><div class="val" id="k-fit-start">—</div><div class="sub" id="k-fit-start-sub">&nbsp;</div></div>
       <div class="kpi"><div class="label">Fit PRO</div><div class="val" id="k-fit-pro">—</div><div class="sub" id="k-fit-pro-sub">&nbsp;</div></div>
@@ -523,12 +522,11 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
     if(scoreOk && rows.length){
       var avg=Math.round(rows.reduce(function(a,r){return a+leadScore(r);},0)/rows.length);
       var quentes=rows.filter(function(r){return leadScore(r)>=SCORE_CONFIG.quente;}).length;
-      setNum("k-temp",avg);setNum("k-pront",quentes);
-      t("k-qp",Math.round(100*quentes/rows.length)+"%");
-      t("k-temp-sub","0 a 100");t("k-pront-sub","score >= "+SCORE_CONFIG.quente);t("k-qp-sub","do total");
+      setNum("k-temp",avg);
+      t("k-temp-sub",quentes+" quente"+(quentes===1?"":"s")+" no período");
     } else {
-      t("k-temp","—");t("k-pront","—");t("k-qp","—");
-      t("k-temp-sub","aguardando perguntas");t("k-pront-sub"," ");t("k-qp-sub"," ");
+      t("k-temp","—");
+      t("k-temp-sub","aguardando perguntas");
     }
   }
 
