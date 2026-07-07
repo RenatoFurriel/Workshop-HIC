@@ -123,7 +123,7 @@ body:not(.is-empty) .empty{display:none}
 .tier-bar{height:100%;border-radius:5px}
 .tier-note{font-family:var(--mono);font-size:10.5px;color:var(--dim);margin-top:5px;text-transform:uppercase;letter-spacing:.03em}
 /* estado "aguardando score": some scatter/funil/temp-canal quando score indisponível */
-body.no-score #c-scoredist,body.no-score #c-scorecanal,body.no-score #c-tiers{visibility:hidden}
+body.no-score #c-scoredist,body.no-score #c-scorecanal{visibility:hidden}
 body:not(.no-score) #score-empty,body:not(.no-score) #sec-score .empty{display:none}
 body.no-score #k-temp{font-size:15px;color:var(--dim)}
 
@@ -207,18 +207,13 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
         <p class="how-foot">Classificação: <b style="color:#FF5C00">Quente</b> ≥ 70 · <b style="color:#E8A33D">Morno</b> 40–69 · <b style="color:#8a949c">Frio</b> &lt; 40.</p>
       </div>
     </div>
-    <div class="grid g-2" style="margin-top:14px">
-      <div class="card"><h3>Score médio por canal</h3><div class="hint">qual fonte traz o melhor lead</div><div class="chart-box"><canvas id="c-scorecanal"></canvas><div class="empty"><span class="small">sem dados de score</span></div></div></div>
-      <div class="card"><h3>Classificação dos leads</h3><div class="hint">quente · morno · frio</div><div class="tiers" id="c-tiers"></div><div class="empty"><span class="small">sem dados de score</span></div></div>
-    </div>
+    <div class="card" style="margin-top:14px"><h3>Score médio por canal</h3><div class="hint">qual fonte traz o melhor lead</div><div class="chart-box"><canvas id="c-scorecanal"></canvas><div class="empty"><span class="small">sem dados de score</span></div></div></div>
   </section>
 
   <!-- FIT DE PRODUTO -->
   <section class="section" id="sec-fit">
     <div class="section-head"><span class="kicker">Fit · Produto ideal</span><h2>Fit com os produtos</h2></div>
-    <div class="grid g-32">
-      <div class="card"><h3>Prioridade comercial</h3><div class="hint">fit de produto × temperatura do score (mais quente = mais leads)</div><div class="heatmap" id="c-fitmatrix"></div><div class="empty"><span class="small">sem dados</span></div></div>
-      <div class="card score-how">
+    <div class="card score-how">
         <h3>ⓘ Como calculamos o fit</h3><div class="hint">régua do Playbook Comercial · ajustável no código</div>
 <p class="how-lead">O cargo define o produto:</p>
         <ul class="how-list">
@@ -226,20 +221,15 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
           <li><b>START</b> <span>Todo mundo abaixo do cargo de Especialista</span></li>
         </ul>
         <p class="how-foot">Desempregado é sempre <b style="color:#FF5C00">START</b>, independente do cargo. Experiência, idade, renda e "aceitaria o desafio" não entram no fit.</p>
-      </div>
     </div>
-    <div class="card" style="margin-top:14px"><h3>Distribuição por produto</h3><div class="hint">START × PRO</div><div class="chart-box"><canvas id="c-fitprod"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
   </section>
 
   <!-- QUALIDADE & ICP -->
   <section class="section">
     <div class="section-head"><span class="kicker">Qualidade & ICP</span><h2>Poder de compra e perfil</h2></div>
-    <div class="grid g-2">
+    <div class="grid g-3">
       <div class="card"><h3>Faixa de renda</h3><div class="hint">poder de compra</div><div class="chart-box"><canvas id="c-renda"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
       <div class="card"><h3>Situação atual</h3><div class="hint">Estagnado × Transição</div><div class="chart-box"><canvas id="c-situacao"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
-    </div>
-    <div class="grid g-2" style="margin-top:14px">
-      <div class="card"><h3>Renda × Situação</h3><div class="hint">onde está o público PRO-ready (mais quente = mais leads)</div><div class="heatmap" id="c-heat"></div><div class="empty"><span class="small">sem dados</span></div></div>
       <div class="card"><h3>Conhece o Roberto há</h3><div class="hint">audiência fria × quente</div><div class="chart-box"><canvas id="c-conhece"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
     </div>
   </section>
@@ -525,30 +515,6 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
     }
   }
 
-  function renderFit(rows){
-    var fits=rows.map(function(r){return {f:fitOf(r),r:r};});
-    var byProd=count(fits,function(x){return x.f.produto;});
-    doughnut("c-fitprod",Object.keys(byProd),Object.values(byProd));
-    var el=document.getElementById("c-fitmatrix");
-    if(el){
-      if(!scoreOk){el.innerHTML="";}
-      else{
-        var prods=["PRO","START"].filter(function(p){return byProd[p];});
-        var tiers=["Quente","Morno","Frio"];
-        var grid={},max=0;
-        fits.forEach(function(x){var k=x.f.produto+"||"+tierOf(leadScore(x.r));grid[k]=(grid[k]||0)+1;if(grid[k]>max)max=grid[k];});
-        el.style.gridTemplateColumns="minmax(90px,1.2fr) repeat("+tiers.length+",1fr)";
-        var html='<div class="hcell hhead"></div>';
-        tiers.forEach(function(tt){html+='<div class="hcell hhead">'+tt+'</div>';});
-        prods.forEach(function(p){
-          html+='<div class="hcell hrow-label">'+p+'</div>';
-          tiers.forEach(function(tt){var v=grid[p+"||"+tt]||0;var a=max?(v/max):0;
-            html+='<div class="hcell" style="background:rgba(255,92,0,'+(0.08+a*0.85).toFixed(2)+');color:'+(a>0.5?"#1A0A00":"#EDEAE2")+'">'+(v||"")+'</div>';});
-        });
-        el.innerHTML=html;
-      }
-    }
-  }
 
   function render(){
     var rows=applyFilters();
@@ -616,14 +582,11 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
     // Score geral
     if(scoreOk){
       renderScoreDist(rows);
-      renderTiers(rows);
       var sByCanal=avgBy(rows,function(r){return r.canal;},function(r){return leadScore(r);});
       var sbc=Object.entries(sByCanal).sort(function(a,b){return b[1]-a[1];});
       barChart("c-scorecanal",sbc.map(function(e){return e[0];}),sbc.map(function(e){return Math.round(e[1]);}),{horizontal:true});
     }
 
-    renderFit(rows);
-    renderHeatmap(rows);
     buildCanalFilter();
     stampUpdated();
   }
@@ -631,32 +594,7 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
   function orderByFreqOrList(rows,key){return sortedEntries(count(rows,function(r){return r[key];}));}
   function avgBy(rows,keyFn,valFn){var s={},c={};rows.forEach(function(r){var k=keyFn(r);if(!k)return;s[k]=(s[k]||0)+valFn(r);c[k]=(c[k]||0)+1;});var out={};Object.keys(s).forEach(function(k){out[k]=s[k]/c[k];});return out;}
 
-  function renderHeatmap(rows){
-    var el=document.getElementById("c-heat");if(!el)return;
-    var rendas=Object.keys(count(rows,function(r){return r.renda;}));
-    var sits=Object.keys(count(rows,function(r){return r.situacao;}));
-    if(!rendas.length||!sits.length){el.innerHTML="";return;}
-    var grid={},max=0;
-    rows.forEach(function(r){var k=r.renda+"||"+r.situacao;grid[k]=(grid[k]||0)+1;if(grid[k]>max)max=grid[k];});
-    el.style.gridTemplateColumns="minmax(90px,1.2fr) repeat("+sits.length+",1fr)";
-    var html='<div class="hcell hhead"></div>';
-    sits.forEach(function(s){html+='<div class="hcell hhead" title="'+s+'">'+sitLabel(s)+'</div>';});
-    rendas.forEach(function(rd){
-      html+='<div class="hcell hrow-label" title="'+rd+'">'+shorten(rd,16)+'</div>';
-      sits.forEach(function(s){var v=grid[rd+"||"+s]||0;var a=max?(v/max):0;
-        html+='<div class="hcell" style="background:rgba(255,92,0,'+(0.08+a*0.85).toFixed(2)+');color:'+(a>0.5?"#1A0A00":"#EDEAE2")+'">'+(v||"")+'</div>';});
-    });
-    el.innerHTML=html;
-  }
   function shorten(s,n){return s.length>n?s.slice(0,n-1)+"…":s;}
-  // Rótulo curto e fiel para a coluna "situação" (texto completo fica no tooltip)
-  function sitLabel(s){
-    var n=norm(s);
-    if(/transi/.test(n))return "Em transição";
-    if(/quero entrar|entrar no mercado/.test(n))return "Quer entrar em GRC TI";
-    if(/ja tenho|boa experi|ja atua/.test(n))return "Já atua em GRC/Cyber";
-    return shorten(s,22);
-  }
 
   function renderScoreDist(rows){
     var ctx=document.getElementById("c-scoredist");if(!ctx)return;destroy("c-scoredist");
@@ -668,15 +606,6 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
         scales:{x:{grid:{display:false},ticks:{color:DIM}},y:{grid:{color:"rgba(43,47,51,.6)"},ticks:{color:DIM,precision:0}}}}});
   }
 
-  function renderTiers(rows){
-    var el=document.getElementById("c-tiers");if(!el)return;
-    var tiers={Quente:0,Morno:0,Frio:0};
-    rows.forEach(function(r){tiers[tierOf(leadScore(r))]++;});
-    var total=rows.length||1;
-    var defs=[["Quente",ORANGE,"score >= 70 · prioridade"],["Morno","#E8A33D","40 a 69 · nutrir"],["Frio","#8a949c","< 40 · baixa prioridade"]];
-    el.innerHTML=defs.map(function(d){var n=tiers[d[0]],pct=Math.round(100*n/total);
-      return '<div class="tier"><div class="tier-top"><span class="tier-dot" style="background:'+d[1]+'"></span><span class="tier-name">'+d[0]+'</span><span class="tier-n">'+n+' · '+pct+'%</span></div><div class="tier-track"><div class="tier-bar" style="width:'+pct+'%;background:'+d[1]+'"></div></div><div class="tier-note">'+d[2]+'</div></div>';}).join("");
-  }
 
   function buildCanalFilter(){
     var sel=document.getElementById("f-canal");if(sel.dataset.built)return;
