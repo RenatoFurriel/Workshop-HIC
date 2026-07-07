@@ -223,16 +223,12 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
 <p class="how-lead">O cargo define o produto:</p>
         <ul class="how-list">
           <li><b>PRO</b> <span>Especialista em diante: Especialista, Coordenador, Gerente, Consultor, Diretor...</span></li>
-          <li><b>START</b> <span>Demais funções e atividades</span></li>
-          <li><b>Fit Forte</b> <span>2+ sinais da persona · PRO: experiência Sim, 35+, renda 10K+, COBIT · START: 25–44, aceitaria o desafio, começando do zero/indireta</span></li>
+          <li><b>START</b> <span>Todo mundo abaixo do cargo de Especialista</span></li>
         </ul>
-        <p class="how-foot">Desempregado é sempre <b style="color:#FF5C00">START</b>, independente do cargo.</p>
+        <p class="how-foot">Desempregado é sempre <b style="color:#FF5C00">START</b>, independente do cargo. Experiência, idade, renda e "aceitaria o desafio" não entram no fit.</p>
       </div>
     </div>
-    <div class="grid g-2" style="margin-top:14px">
-      <div class="card"><h3>Distribuição por produto</h3><div class="hint">START × PRO × a avaliar</div><div class="chart-box"><canvas id="c-fitprod"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
-      <div class="card"><h3>Força do fit</h3><div class="hint">quantos sinais da persona batem</div><div class="chart-box"><canvas id="c-fitforca"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
-    </div>
+    <div class="card" style="margin-top:14px"><h3>Distribuição por produto</h3><div class="hint">START × PRO</div><div class="chart-box"><canvas id="c-fitprod"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
   </section>
 
   <!-- QUALIDADE & ICP -->
@@ -401,26 +397,14 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
   function tierOf(sc){return sc>=SCORE_CONFIG.quente?"Quente":(sc>=SCORE_CONFIG.morno?"Morno":"Frio");}
   function tierColor(sc){return sc>=SCORE_CONFIG.quente?ORANGE:(sc>=SCORE_CONFIG.morno?"#E8A33D":"#5F6A72");}
 
-  // ===== Fit de produto (regra do Renato, 07/07) =====
-  // O CARGO define o produto: Especialista em diante (Especialista, Coordenador,
-  // Gerente, Consultor, Diretor...) -> PRO; qualquer outro -> START.
-  // Excecao: desempregado e sempre START, independente do cargo.
-  // Forca = quantos sinais da persona batem (>=2 Forte).
+  // ===== Fit de produto (regra do Renato, 07/07, simplificada em 07/07) =====
+  // Fit BINARIO. O cargo define o produto: Especialista em diante -> PRO;
+  // todo mundo abaixo de Especialista -> START.
+  // Excecao: desempregado e sempre START, independente de qualquer fator.
+  // Experiencia, idade, renda e "aceitaria o desafio" NAO entram no fit.
   var FIT_CONFIG = {
     cargoPro: /especialista|coordenador|gerente|consultor|supervisor|diretor|head|lider|arquitet|gestor|ciso|executivo/,
-    desempregado: /desempregad|recoloca|sem emprego/,
-    forteMin: 2,
-    sinaisPro: [
-      function(r){return /^sim/.test(norm(r.expGRC));},                       // ja tem experiencia previa
-      function(r){return /35 a 44|45 a 54|45 anos|55|acima de 4/.test(norm(r.idade));}, // persona 35+
-      function(r){return rendaScore(r.renda)>=16;},                           // renda >= 10K
-      function(r){return /certifica/.test(norm(r.cobit));}                    // COBIT certificado
-    ],
-    sinaisStart: [
-      function(r){return /25 a 34|35 a 44/.test(norm(r.idade));},             // persona 28-45
-      function(r){return /sim/.test(norm(r.aceitar));},                       // aceitaria o desafio
-      function(r){return /zero|indireta/.test(norm(r.expGRC));}               // comecando/indireta
-    ]
+    desempregado: /desempregad|recoloca|sem emprego/
   };
   function rendaMidpoint(txt){
     var x=norm(txt); if(!x) return null;
@@ -442,11 +426,8 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
   }
   function fitOf(r){
     var fn=norm(r.funcao), st=norm(r.situacao);
-    var desemp=FIT_CONFIG.desempregado.test(fn)||FIT_CONFIG.desempregado.test(st);
-    var isPro=!desemp && FIT_CONFIG.cargoPro.test(fn);
-    var sinais=isPro?FIT_CONFIG.sinaisPro:FIT_CONFIG.sinaisStart, n=0;
-    sinais.forEach(function(f){try{if(f(r))n++;}catch(e){}});
-    return {produto:isPro?"PRO":"START", forca:n>=FIT_CONFIG.forteMin?"Forte":"Médio"};
+    if(FIT_CONFIG.desempregado.test(fn)||FIT_CONFIG.desempregado.test(st)) return {produto:"START"};
+    return {produto:FIT_CONFIG.cargoPro.test(fn)?"PRO":"START"};
   }
 
   // ===== dados fictícios (a planilha está vazia) =====
@@ -548,15 +529,11 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
     var fits=rows.map(function(r){return {f:fitOf(r),r:r};});
     var byProd=count(fits,function(x){return x.f.produto;});
     doughnut("c-fitprod",Object.keys(byProd),Object.values(byProd));
-    var forcas=["START Forte","START Médio","PRO Forte","PRO Médio"];
-    var fc={};forcas.forEach(function(k){fc[k]=0;});
-    fits.forEach(function(x){var k=x.f.produto+" "+x.f.forca;if(fc[k]!=null)fc[k]++;});
-    barChart("c-fitforca",forcas,forcas.map(function(k){return fc[k];}),{horizontal:true});
     var el=document.getElementById("c-fitmatrix");
     if(el){
       if(!scoreOk){el.innerHTML="";}
       else{
-        var prods=["PRO","START","A avaliar"].filter(function(p){return byProd[p];});
+        var prods=["PRO","START"].filter(function(p){return byProd[p];});
         var tiers=["Quente","Morno","Frio"];
         var grid={},max=0;
         fits.forEach(function(x){var k=x.f.produto+"||"+tierOf(leadScore(x.r));grid[k]=(grid[k]||0)+1;if(grid[k]>max)max=grid[k];});
