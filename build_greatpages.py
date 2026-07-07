@@ -103,10 +103,20 @@ html_part = html_part.encode("ascii", "xmlcharrefreplace").decode()
 script_part = re.sub(r"[^\x00-\x7F]", lambda m: "\\u%04x" % ord(m.group()), script_part)
 body = html_part + script_part
 
+# Fontes fora do caminho critico: link injetado via JS nao bloqueia a
+# renderizacao (o @import bloqueava ~280ms no PageSpeed). display=swap ja
+# vem na URL; <noscript> cobre navegador sem JS.
+fonts_loader = (
+    "<script>(function(){var l=document.createElement(\"link\");"
+    "l.rel=\"stylesheet\";l.href=\"" + font_href + "\";"
+    "(document.head||document.documentElement).appendChild(l);})();</script>\n"
+    '<noscript><link rel="stylesheet" href="' + font_href + '"></noscript>\n'
+)
+
 out = (
     "<!-- ===== INICIO DO BLOCO GREATPAGES - LP WORKSHOP GRC TI ===== -->\n"
+    + fonts_loader +
     "<style>\n"
-    '@import url("' + font_href + '");\n'
     + scoped +
     "\n</style>\n"
     '<div id="lpx-root">'

@@ -7,7 +7,8 @@
 <meta name="description" content="As empresas brasileiras vão investir R$ 104 bilhões em segurança e governança até 2028. Em um workshop gratuito e ao vivo, entenda o que é o HIC de GRC TI e o caminho para se tornar um.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Jost:wght@500;600;700&family=Hanken+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@500;600;700&family=Hanken+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Jost:wght@500;600;700&family=Hanken+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
 <style>
 :root{
   --bg:#111214;
@@ -319,7 +320,7 @@ footer p{font-family:var(--mono);font-size:11.5px;color:var(--dim);margin:0 auto
 
 <header>
   <div class="header-row">
-    <span class="wordmark"><img src="marca-itxpro-branco.png" alt="ITXPRO"></span>
+    <span class="wordmark"><img src="marca-itxpro-branco.png" alt="ITXPRO" width="300" height="80"></span>
     <div class="header-meta">
       <span class="header-live">ao vivo · sáb · 9h–18h</span>
       <a href="#" data-form class="btn btn-sm">Garantir vaga</a>
@@ -670,7 +671,7 @@ footer p{font-family:var(--mono);font-size:11.5px;color:var(--dim);margin:0 auto
   <div class="wrap">
     <div class="mentor-grid">
       <div class="mentor-photo-wrap reveal">
-        <img src="roberto-circulo.png" alt="Roberto Arteiro, mentor do workshop">
+        <img src="roberto-circulo.png" alt="Roberto Arteiro, mentor do workshop" width="760" height="760" loading="lazy">
       </div>
       <div class="reveal">
         <span class="mentor-tag">Quem será o mentor</span>
@@ -854,13 +855,17 @@ footer p{font-family:var(--mono);font-size:11.5px;color:var(--dim);margin:0 auto
     var el = document.getElementById("lpx-root") || document.body;
     return Math.ceil(el.getBoundingClientRect().height);
   }
-  var ultima = 0;
+  var ultima = 0, agendado = false;
   function reportar(){
-    var h = alturaConteudo();
-    if(h === ultima) return;
-    ultima = h;
-    try{ if(window.frameElement){ window.frameElement.style.height = h + "px"; } }catch(e){}
-    try{ parent.postMessage({ type:"lpx-height", height:h }, "*"); }catch(e){}
+    if(agendado) return; agendado = true;
+    requestAnimationFrame(function(){
+      agendado = false;
+      var h = alturaConteudo();
+      if(h === ultima) return;
+      ultima = h;
+      try{ if(window.frameElement){ window.frameElement.style.height = h + "px"; } }catch(e){}
+      try{ parent.postMessage({ type:"lpx-height", height:h }, "*"); }catch(e){}
+    });
   }
   window.addEventListener("load", reportar);
   window.addEventListener("resize", reportar);
