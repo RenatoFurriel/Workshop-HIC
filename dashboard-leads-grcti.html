@@ -59,8 +59,7 @@ header{position:sticky;top:0;z-index:20;background:rgba(17,18,20,.92);backdrop-f
 .section-head h2{font-size:clamp(18px,2.2vw,24px);color:var(--text);margin-top:4px}
 
 /* kpi cards */
-.kpi-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:14px}
-@media(max-width:1200px){.kpi-grid{grid-template-columns:repeat(4,1fr)}}
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
 @media(max-width:900px){.kpi-grid{grid-template-columns:repeat(2,1fr)}}
 .kpi{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px}
 .kpi .label{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);margin-bottom:10px}
@@ -169,6 +168,7 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
       <div class="kpi"><div class="label">Score médio</div><div class="val" id="k-temp">—</div><div class="sub" id="k-temp-sub">&nbsp;</div></div>
       <div class="kpi"><div class="label">Leads quentes</div><div class="val" id="k-pront">—</div><div class="sub" id="k-pront-sub">&nbsp;</div></div>
       <div class="kpi"><div class="label">% quentes</div><div class="val" id="k-qp">—</div><div class="sub" id="k-qp-sub">&nbsp;</div></div>
+      <div class="kpi"><div class="label">Renda média</div><div class="val" id="k-renda">—</div><div class="sub" id="k-renda-sub">&nbsp;</div></div>
       <div class="kpi"><div class="label">Fit START</div><div class="val" id="k-fit-start">—</div><div class="sub" id="k-fit-start-sub">&nbsp;</div></div>
       <div class="kpi"><div class="label">Fit PRO</div><div class="val" id="k-fit-pro">—</div><div class="sub" id="k-fit-pro-sub">&nbsp;</div></div>
     </div>
@@ -199,12 +199,11 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
       </div>
       <div class="card score-how">
         <h3>ⓘ Como calculamos</h3><div class="hint">régua transparente · ajustável no código</div>
-        <p class="how-lead">Score Geral (0–100) = soma das 4 perguntas:</p>
+        <p class="how-lead">Score Geral (0–100) = soma das 3 perguntas:</p>
         <ul class="how-list">
-          <li><b>Satisfação com a carreira</b> <span>Tot. insatisfeito 35 · Insatisfeito 20 · Satisfeito 8 · Tot. satisfeito 0</span></li>
-          <li><b>Aceitaria o desafio</b> <span>Sim 25 · Não 0</span></li>
-          <li><b>Renda</b> <span>&lt;5K 8 · 5–10K 12 · 10–15K 16 · 15–20K 20 · 20–25K 23 · +25K 25</span></li>
-          <li><b>Conhece o Roberto</b> <span>+1 ano 20 · ~6m 15 · 1–3m 11 · Acabei 6</span></li>
+          <li><b>Satisfação com a carreira</b> <span>Tot. insatisfeito 45 · Insatisfeito 30 · Satisfeito 10 · Tot. satisfeito 0</span></li>
+          <li><b>Aceitaria o desafio</b> <span>Sim 30 · Não 0</span></li>
+          <li><b>Conhece o Roberto</b> <span>+1 ano 25 · ~6m 19 · 1–3m 13 · Acabei 7</span></li>
         </ul>
         <p class="how-foot">Classificação: <b style="color:#FF5C00">Quente</b> ≥ 70 · <b style="color:#E8A33D">Morno</b> 40–69 · <b style="color:#8a949c">Frio</b> &lt; 40.</p>
       </div>
@@ -344,7 +343,7 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
   }
   function normalizeRows(raw,headers){
     var map=buildMapper(headers);
-    scoreOk = scoreOk || !!(map.satisfacao && map.aceitar && map.renda && map.conhece);
+    scoreOk = scoreOk || !!(map.satisfacao && map.aceitar && map.conhece);
     return raw.map(function(o){
       function g(key){return map[key]?o[map[key]]:"";}
       return {
@@ -385,10 +384,10 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
   // ===== Score Geral (0-100) — regua transparente e ajustavel =====
   var SCORE_CONFIG = {
     quente: 70, morno: 40,     // faixas de classificacao do Score Geral (0-100)
-    satisfacao: [ [/tot\w* insatisf/,35], [/insatisf/,20], [/tot\w* satisf/,0], [/satisf/,8] ],
-    aceitar: [ [/sim/,25] ],   // default 0 (Nao)
+    satisfacao: [ [/tot\w* insatisf/,45], [/insatisf/,30], [/tot\w* satisf/,0], [/satisf/,10] ],
+    aceitar: [ [/sim/,30] ],   // default 0 (Nao)
     rendaFaixa: [ [20,23],[15,20],[10,16],[5,12] ], // + <5K:8, +25K:25
-    conhece: [ [/bastante tempo|mais de 1 ?ano|mais de um ano/,20],[/6 ?meses|seis meses/,15],[/1 a 3|um a tres|pouco tempo/,11],[/acabei|anunci|nao conhec/,6] ]
+    conhece: [ [/bastante tempo|mais de 1 ?ano|mais de um ano/,25],[/6 ?meses|seis meses/,19],[/1 a 3|um a tres|pouco tempo/,13],[/acabei|anunci|nao conhec/,7] ]
   };
   function matchPts(txt, rules, def){var x=norm(txt);for(var i=0;i<rules.length;i++){if(rules[i][0].test(x))return rules[i][1];}return def;}
   function rendaScore(txt){
@@ -399,7 +398,7 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
     for(var i=0;i<SCORE_CONFIG.rendaFaixa.length;i++){if(lo>=SCORE_CONFIG.rendaFaixa[i][0])return SCORE_CONFIG.rendaFaixa[i][1];}
     return 8;
   }
-  function leadScore(r){return Math.min(100,matchPts(r.satisfacao,SCORE_CONFIG.satisfacao,0)+matchPts(r.aceitar,SCORE_CONFIG.aceitar,0)+rendaScore(r.renda)+matchPts(r.conhece,SCORE_CONFIG.conhece,6));}
+  function leadScore(r){return Math.min(100,matchPts(r.satisfacao,SCORE_CONFIG.satisfacao,0)+matchPts(r.aceitar,SCORE_CONFIG.aceitar,0)+matchPts(r.conhece,SCORE_CONFIG.conhece,7));}
   function tierOf(sc){return sc>=SCORE_CONFIG.quente?"Quente":(sc>=SCORE_CONFIG.morno?"Morno":"Frio");}
   function tierColor(sc){return sc>=SCORE_CONFIG.quente?ORANGE:(sc>=SCORE_CONFIG.morno?"#E8A33D":"#5F6A72");}
 
@@ -424,6 +423,24 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
       function(r){return /zero|indireta/.test(norm(r.expGRC));}               // comecando/indireta
     ]
   };
+  function rendaMidpoint(txt){
+    var x=norm(txt); if(!x) return null;
+    if(/menos|ate 5|inferior|< ?5/.test(x)) return 4;
+    if(/acima|mais de 25|superior|25k\+/.test(x)) return 30;
+    var nums=(x.match(/\d+/g)||[]).map(Number);
+    if(nums.length>=2) return (nums[0]+nums[1])/2;
+    if(nums.length===1) return nums[0];
+    return null;
+  }
+  function RENDA_KPI(rows){
+    var el=document.getElementById("k-renda"), sub=document.getElementById("k-renda-sub");
+    if(!el) return;
+    var vals=rows.map(function(r){return rendaMidpoint(r.renda);}).filter(function(v){return v!=null;});
+    if(!vals.length){el.textContent="—";sub.textContent=" ";return;}
+    var avg=vals.reduce(function(a,b){return a+b;},0)/vals.length;
+    el.textContent="R$ "+(Math.round(avg*10)/10).toString().replace(".",",")+"K";
+    sub.textContent="ponto médio das faixas";
+  }
   function fitOf(r){
     var fn=norm(r.funcao), st=norm(r.situacao);
     var desemp=FIT_CONFIG.desempregado.test(fn)||FIT_CONFIG.desempregado.test(st);
@@ -569,7 +586,7 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
     var d7=rows.filter(function(r){return (now-r.data)/86400000<=7;}).length;
     var avg=rows.length?Math.round(rows.reduce(function(s,r){return s+r.score;},0)/rows.length):0;
     var livePct=rows.length?Math.round(100*rows.filter(aovivoPos).length/rows.length):0;
-    setNum("k-total",rows.length);setNum("k-hoje",hoje);SCORE_KPIS(rows);FIT_KPIS(rows);
+    setNum("k-total",rows.length);setNum("k-hoje",hoje);SCORE_KPIS(rows);FIT_KPIS(rows);RENDA_KPI(rows);
     document.body.classList.toggle("no-score", !scoreOk);
     document.getElementById("k-total-sub").textContent=rows.length?("+"+hoje+" hoje"):" ";
     
