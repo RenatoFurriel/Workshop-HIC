@@ -16,3 +16,7 @@ lp-workshop-grc-ti_1.html
 # ===== Sistema / config local =====
 .DS_Store
 .claude/
+
+# ===== Espelho privado ITXPRO (repo paralelo, não publicar aqui) =====
+.git-itxpro/
+sync-itxpro.sh
