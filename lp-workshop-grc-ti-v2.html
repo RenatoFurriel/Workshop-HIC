@@ -7,8 +7,8 @@
 <meta name="description" content="As empresas brasileiras vão investir R$ 104 bilhões em segurança e governança até 2028. Em um workshop gratuito e ao vivo, entenda o que é o HIC de GRC TI e o caminho para se tornar um.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Jost:wght@500;600;700&family=Hanken+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-<noscript><link href="https://fonts.googleapis.com/css2?family=Jost:wght@500;600;700&family=Hanken+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet"></noscript>
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@600;700&family=Hanken+Grotesk:wght@400;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<noscript><link href="https://fonts.googleapis.com/css2?family=Jost:wght@600;700&family=Hanken+Grotesk:wght@400;600;700&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet"></noscript>
 <style>
 :root{
   --bg:#111214;
@@ -314,6 +314,14 @@ footer p{font-family:var(--mono);font-size:11.5px;color:var(--dim);margin:0 auto
   .gauge-fill{transition:none;width:var(--pct)}
   .orbit-ring,.node-pulse,.header-live::before,.console-bar .live::before{animation:none}
 }
+
+/* ============ PERF: renderiza seções abaixo da dobra sob demanda ============ */
+#para-quem,#oportunidade,#workshop,#mentor,#faq{content-visibility:auto}
+#para-quem{contain-intrinsic-size:auto 1300px}
+#oportunidade{contain-intrinsic-size:auto 3200px}
+#workshop{contain-intrinsic-size:auto 1800px}
+#mentor{contain-intrinsic-size:auto 1300px}
+#faq{contain-intrinsic-size:auto 1100px}
 </style>
 </head>
 <body>
