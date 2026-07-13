@@ -35,7 +35,14 @@ logo_uri = "data:image/png;base64," + base64.b64encode(lbuf.getvalue()).decode()
 css = re.search(r"<style>(.*?)</style>", html, re.S).group(1)
 css = re.sub(r"/\*.*?\*/", "", css, flags=re.S)
 body = re.search(r"<body>(.*)</body>", html, re.S).group(1)
-font_href = re.search(r'href="(https://fonts\.googleapis\.com/css2[^"]+)"', html).group(1)
+font_href_m = re.search(r'href="(https://fonts\.googleapis\.com/css2[^"]+)"', html)
+font_href = font_href_m.group(1) if font_href_m else None
+# preconnect/preload de fontes do <head> vao junto no fragmento (validos no body)
+head = re.search(r"<head>(.*?)</head>", html, re.S).group(1)
+font_hints = "".join(
+    m.group(0) + "\n"
+    for m in re.finditer(r'<link rel="(?:preconnect|preload)"[^>]*fonts\.gstatic\.com[^>]*>', head)
+)
 
 ROOT = "#lpx-root"
 
@@ -79,7 +86,7 @@ def transform(css_text):
                 depth -= 1
             j += 1
         inner = css_text[brace + 1:j - 1]
-        if selector.startswith("@keyframes"):
+        if selector.startswith("@keyframes") or selector.startswith("@font-face"):
             result.append(selector + "{" + inner + "}")
         elif selector.startswith("@media"):
             result.append(selector + "{" + transform(inner) + "}")
@@ -103,15 +110,18 @@ html_part = html_part.encode("ascii", "xmlcharrefreplace").decode()
 script_part = re.sub(r"[^\x00-\x7F]", lambda m: "\\u%04x" % ord(m.group()), script_part)
 body = html_part + script_part
 
-# Fontes fora do caminho critico: link injetado via JS nao bloqueia a
-# renderizacao (o @import bloqueava ~280ms no PageSpeed). display=swap ja
-# vem na URL; <noscript> cobre navegador sem JS.
-fonts_loader = (
-    "<script>(function(){var l=document.createElement(\"link\");"
-    "l.rel=\"stylesheet\";l.href=\"" + font_href + "\";"
-    "(document.head||document.documentElement).appendChild(l);})();</script>\n"
-    '<noscript><link rel="stylesheet" href="' + font_href + '"></noscript>\n'
-)
+# Fontes: quando a pagina usa @font-face inline (Jost embutida + gstatic direto),
+# nao ha CSS do Google a carregar; levamos so os hints (preconnect/preload).
+# Fallback: se ainda existir link css2 no fonte, injeta via JS como antes.
+if font_href:
+    fonts_loader = (
+        "<script>(function(){var l=document.createElement(\"link\");"
+        "l.rel=\"stylesheet\";l.href=\"" + font_href + "\";"
+        "(document.head||document.documentElement).appendChild(l);})();</script>\n"
+        '<noscript><link rel="stylesheet" href="' + font_href + '"></noscript>\n'
+    )
+else:
+    fonts_loader = font_hints
 
 out = (
     "<!-- ===== INICIO DO BLOCO GREATPAGES - LP WORKSHOP GRC TI ===== -->\n"
