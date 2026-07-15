@@ -558,7 +558,7 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
       ALL=mockData();scoreOk=true;initDates();render();return;
     }
     document.getElementById("demo-banner").classList.add("hidden");
-    Papa.parse(CONFIG.csvUrl,{download:true,header:true,skipEmptyLines:true,complete:function(res){
+    Papa.parse(CONFIG.csvUrl+"&_ts="+Date.now(),{download:true,header:true,skipEmptyLines:true,complete:function(res){
       var headers=res.meta.fields||[];
       var rows=normalizeRows(res.data,headers);
       if(rows.length===0 && ALL.length>0){stampUpdated();return;} // ignora refresh vazio/transiente
