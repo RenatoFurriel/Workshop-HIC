@@ -44,7 +44,7 @@ header{position:sticky;top:0;z-index:20;background:rgba(17,18,20,.92);backdrop-f
 .demo-banner.hidden{display:none}
 
 /* filters */
-.filters{display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:18px 0}
+.filters{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .filters label{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
 .filters select,.filters input[type=date]{font-family:var(--body);font-size:13px;background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:pointer}
 .filters input[type=date]{color-scheme:dark}
@@ -54,17 +54,27 @@ header{position:sticky;top:0;z-index:20;background:rgba(17,18,20,.92);backdrop-f
 
 /* sections */
 .section{padding:8px 0 40px}
-.section-head{display:flex;flex-direction:column;margin:24px 0 18px}
-.kicker{font-family:var(--mono);font-weight:600;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--orange)}
-.section-head h2{font-size:clamp(18px,2.2vw,24px);color:var(--text);margin-top:4px}
 
 /* kpi cards */
-.kpi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.kpi-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+@media(max-width:1200px){.kpi-grid{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:900px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.kpi-grid .kpi .val{font-size:25px}}
-.kpi{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px}
+.kpi{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;position:relative}
 .kpi .label{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);margin-bottom:10px}
-.kpi .val{font-family:var(--display);font-weight:700;font-size:34px;line-height:1;color:var(--text);white-space:nowrap}
+.kpi .val{font-family:var(--display);font-weight:700;font-size:27px;line-height:1;color:var(--text);white-space:nowrap}
 .kpi .sub{font-family:var(--mono);font-size:11.5px;color:var(--orange);margin-top:8px}
+
+
+/* popover "como calculamos" nos KPIs */
+.kpi-info{display:inline;margin-left:5px}
+.kpi-info summary{list-style:none;display:inline;cursor:pointer;color:var(--dim);font-size:12px}
+.kpi-info summary::-webkit-details-marker{display:none}
+.kpi-info summary:hover,.kpi-info[open] summary{color:var(--orange)}
+.kpi-info .pop{position:absolute;top:calc(100% - 8px);left:0;min-width:270px;z-index:30;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:14px 16px;box-shadow:0 16px 34px rgba(0,0,0,.5);text-transform:none;letter-spacing:0;cursor:auto}
+.kpi-info .pop.pop-right{left:auto;right:0}
+.kpi-info .pop p{font-family:var(--body);font-size:12px;color:var(--muted);margin:0 0 7px;line-height:1.55}
+.kpi-info .pop p:last-child{margin-bottom:0}
+.kpi-info .pop b{color:var(--text);font-weight:600}
 
 /* chart cards */
 .grid{display:grid;gap:14px}
@@ -72,11 +82,11 @@ header{position:sticky;top:0;z-index:20;background:rgba(17,18,20,.92);backdrop-f
 .g-3{grid-template-columns:repeat(3,1fr)}
 .g-32{grid-template-columns:2fr 1fr}
 @media(max-width:900px){.g-2,.g-3,.g-32{grid-template-columns:1fr}}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;min-height:120px;position:relative}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px;min-height:100px;position:relative}
 .card h3{font-size:14px;color:var(--text);letter-spacing:.03em;margin-bottom:4px;text-transform:none;font-family:var(--display);font-weight:600}
-.card .hint{font-family:var(--mono);font-size:10.5px;color:var(--dim);letter-spacing:.03em;margin-bottom:16px;text-transform:uppercase}
-.chart-box{position:relative;height:240px}
-.chart-box.tall{height:300px}
+.card .hint{font-family:var(--mono);font-size:10.5px;color:var(--dim);letter-spacing:.03em;margin-bottom:10px;text-transform:uppercase}
+.chart-box{position:relative;height:170px}
+.chart-box.time{height:205px}
 
 /* empty state */
 .empty{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--dim);text-align:center;padding:20px}
@@ -102,31 +112,10 @@ body:not(.is-empty) .empty{display:none}
 .fstep.dim .fbar{background:var(--surface-2)}
 .fstep.dim .fname,.fstep.dim .fnums{color:var(--muted)}
 
-/* painel "como calculamos" */
-.score-how .how-axis{display:flex;align-items:baseline;gap:10px;margin-top:14px;flex-wrap:wrap}
-.how-tag{font-family:var(--display);font-weight:600;font-size:13px;color:var(--text)}
-.how-note{font-family:var(--mono);font-size:10.5px;color:var(--dim);text-transform:uppercase;letter-spacing:.03em}
-.how-list{list-style:none;margin:8px 0 0}
-.how-list li{padding:7px 0;border-bottom:1px solid var(--line);font-size:12.5px;color:var(--muted)}
-.how-list li:last-child{border-bottom:none}
-.how-list li b{color:var(--text);font-weight:600;display:block;margin-bottom:2px}
-.how-list li span{font-family:var(--mono);font-size:11px;color:var(--dim)}
-.how-foot{font-size:11.5px;color:var(--dim);margin-top:14px;line-height:1.5}
-.how-lead{font-size:13px;color:var(--muted);margin-top:12px}
-.tiers{display:flex;flex-direction:column;gap:16px;padding-top:6px}
-.tier-top{display:flex;align-items:center;gap:8px;margin-bottom:7px}
-.tier-dot{width:10px;height:10px;border-radius:50%;flex:0 0 auto}
-.tier-name{font-family:var(--display);font-weight:600;font-size:13px;color:var(--text)}
-.tier-n{margin-left:auto;font-family:var(--mono);font-size:12px;color:var(--muted)}
-.tier-track{height:8px;background:var(--surface-2);border-radius:5px;overflow:hidden}
-.tier-bar{height:100%;border-radius:5px}
-.tier-note{font-family:var(--mono);font-size:10.5px;color:var(--dim);margin-top:5px;text-transform:uppercase;letter-spacing:.03em}
 /* estado "aguardando score": some scatter/funil/temp-canal quando score indisponível */
-body.no-score #c-scoredist,body.no-score #c-scorecanal{visibility:hidden}
-body:not(.no-score) #score-empty,body:not(.no-score) #sec-score .empty{display:none}
 body.no-score #k-temp{font-size:15px;color:var(--dim)}
 
-footer{border-top:1px solid var(--line);padding:22px 0 40px;text-align:center}
+footer{border-top:1px solid var(--line);padding:14px 0 18px;text-align:center}
 footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.04em}
 </style>
 </head>
@@ -139,6 +128,15 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
       <span class="sep"></span>
       <span class="ttl">Painel de Leads · Workshop GRC TI</span>
     </div>
+    <div class="filters">
+      <label for="f-de">De</label>
+      <input type="date" id="f-de">
+      <label for="f-ate">Até</label>
+      <input type="date" id="f-ate">
+      <label for="f-canal">Canal</label>
+      <select id="f-canal"><option value="all">Todos os canais</option></select>
+      <button type="button" id="f-reset" class="f-reset">Tudo até hoje</button>
+    </div>
     <div class="status">
       <span class="live" id="st-updated">atualizando…</span>
       <span id="st-countdown">—</span>
@@ -150,93 +148,28 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
 
 <main class="wrap">
 
-  <div class="filters">
-    <label for="f-de">De</label>
-    <input type="date" id="f-de">
-    <label for="f-ate">Até</label>
-    <input type="date" id="f-ate">
-    <label for="f-canal">Canal</label>
-    <select id="f-canal"><option value="all">Todos os canais</option></select>
-    <button type="button" id="f-reset" class="f-reset">Tudo até hoje</button>
-  </div>
 
   <!-- KPIs -->
-  <section class="section" style="padding-top:0">
+  <section class="section" style="padding:14px 0 0">
     <div class="kpi-grid">
       <div class="kpi"><div class="label">Total de leads</div><div class="val" id="k-total">0</div><div class="sub" id="k-total-sub">&nbsp;</div></div>
       <div class="kpi"><div class="label">Leads hoje</div><div class="val" id="k-hoje">0</div><div class="sub" id="k-hoje-sub">&nbsp;</div></div>
-      <div class="kpi"><div class="label">Score médio</div><div class="val" id="k-temp">—</div><div class="sub" id="k-temp-sub">&nbsp;</div></div>
+      <div class="kpi"><div class="label">Score médio <details class="kpi-info"><summary title="Como calculamos">&#9432;</summary><div class="pop"><p><b>Score Geral (0&ndash;100)</b> = soma das 3 perguntas:</p><p><b>Satisfa&ccedil;&atilde;o com a carreira</b><br>Tot. insatisfeito 45 &middot; Insatisfeito 30 &middot; Satisfeito 10 &middot; Tot. satisfeito 0</p><p><b>Aceitaria o desafio</b> &mdash; Sim 30 &middot; N&atilde;o 0</p><p><b>Conhece o Roberto</b><br>+1 ano 25 &middot; ~6m 19 &middot; 1&ndash;3m 13 &middot; Acabei 7</p><p>Classifica&ccedil;&atilde;o: <b style="color:#FF5C00">Quente</b> &ge; 70 &middot; <b style="color:#E8A33D">Morno</b> 40&ndash;69 &middot; Frio &lt; 40.</p></div></details></div><div class="val" id="k-temp">—</div><div class="sub" id="k-temp-sub">&nbsp;</div></div>
       <div class="kpi"><div class="label">Renda média</div><div class="val" id="k-renda">—</div><div class="sub" id="k-renda-sub">&nbsp;</div></div>
-      <div class="kpi"><div class="label">Fit START</div><div class="val" id="k-fit-start">—</div><div class="sub" id="k-fit-start-sub">&nbsp;</div></div>
-      <div class="kpi"><div class="label">Fit PRO</div><div class="val" id="k-fit-pro">—</div><div class="sub" id="k-fit-pro-sub">&nbsp;</div></div>
+      <div class="kpi"><div class="label">Fit START <details class="kpi-info"><summary title="Como calculamos">&#9432;</summary><div class="pop pop-right"><p><b>O cargo define o produto:</b></p><p><b>PRO</b> &mdash; Especialista em diante (Especialista, Coordenador, Gerente, Consultor, Diretor...)</p><p><b>START</b> &mdash; abaixo do cargo de Especialista</p><p>Desempregado &eacute; sempre <b style="color:#FF5C00">START</b>. Experi&ecirc;ncia, idade, renda e &quot;aceitaria o desafio&quot; n&atilde;o entram no fit.</p></div></details></div><div class="val" id="k-fit-start">—</div><div class="sub" id="k-fit-start-sub">&nbsp;</div></div>
+      <div class="kpi"><div class="label">Fit PRO <details class="kpi-info"><summary title="Como calculamos">&#9432;</summary><div class="pop pop-right"><p><b>O cargo define o produto:</b></p><p><b>PRO</b> &mdash; Especialista em diante (Especialista, Coordenador, Gerente, Consultor, Diretor...)</p><p><b>START</b> &mdash; abaixo do cargo de Especialista</p><p>Desempregado &eacute; sempre <b style="color:#FF5C00">START</b>. Experi&ecirc;ncia, idade, renda e &quot;aceitaria o desafio&quot; n&atilde;o entram no fit.</p></div></details></div><div class="val" id="k-fit-pro">—</div><div class="sub" id="k-fit-pro-sub">&nbsp;</div></div>
     </div>
   </section>
 
-  <!-- AQUISIÇÃO -->
-  <section class="section">
-    <div class="section-head"><span class="kicker">Aquisição</span><h2>De onde vêm os leads</h2></div>
-    <div class="grid g-32">
-      <div class="card"><h3>Leads ao longo do tempo</h3><div class="hint">diário + acumulado · marcador no dia do evento</div><div class="chart-box tall"><canvas id="c-time"></canvas><div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19V5m0 14h16M8 15l3-4 3 2 4-6"/></svg><span class="big">Aguardando os primeiros leads</span><span class="small">o gráfico aparece quando entrar o 1º cadastro</span></div></div></div>
-      <div class="card"><h3>Origem de mídia</h3><div class="hint">Google × Meta × orgânico</div><div class="chart-box tall"><canvas id="c-midia"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
-    </div>
-    <div class="grid g-2" style="margin-top:14px">
-      <div class="card"><h3>Como ficou sabendo</h3><div class="hint">canal auto-reportado</div><div class="chart-box"><canvas id="c-canal"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
-      <div class="card"><h3>Campanhas (utm_campaign)</h3><div class="hint">volume por campanha</div><div class="chart-box"><canvas id="c-utm"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
-    </div>
-  </section>
-
-  <!-- SCORE GERAL -->
-  <section class="section" id="sec-score">
-    <div class="section-head"><span class="kicker">Score · Qualidade do lead</span><h2>Score por temperatura e prontidão</h2></div>
-    <div class="grid g-32">
-      <div class="card">
-        <h3>Distribuição do Score</h3><div class="hint">quantos leads em cada faixa de 0 a 100</div>
-        <div class="chart-box tall"><canvas id="c-scoredist"></canvas>
-          <div class="empty" id="score-empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19V5m0 14h16M8 15l3-4 3 2 4-6"/></svg><span class="big">Aguardando as perguntas de qualificação</span><span class="small">o score acende quando o formulário tiver as 4 perguntas</span></div>
-        </div>
-      </div>
-      <div class="card score-how">
-        <h3>ⓘ Como calculamos</h3><div class="hint">régua transparente · ajustável no código</div>
-        <p class="how-lead">Score Geral (0–100) = soma das 3 perguntas:</p>
-        <ul class="how-list">
-          <li><b>Satisfação com a carreira</b> <span>Tot. insatisfeito 45 · Insatisfeito 30 · Satisfeito 10 · Tot. satisfeito 0</span></li>
-          <li><b>Aceitaria o desafio</b> <span>Sim 30 · Não 0</span></li>
-          <li><b>Conhece o Roberto</b> <span>+1 ano 25 · ~6m 19 · 1–3m 13 · Acabei 7</span></li>
-        </ul>
-        <p class="how-foot">Classificação: <b style="color:#FF5C00">Quente</b> ≥ 70 · <b style="color:#E8A33D">Morno</b> 40–69 · <b style="color:#8a949c">Frio</b> &lt; 40.</p>
-      </div>
-    </div>
-    <div class="card" style="margin-top:14px"><h3>Score médio por canal</h3><div class="hint">qual fonte traz o melhor lead</div><div class="chart-box"><canvas id="c-scorecanal"></canvas><div class="empty"><span class="small">sem dados de score</span></div></div></div>
-  </section>
-
-  <!-- FIT DE PRODUTO -->
-  <section class="section" id="sec-fit">
-    <div class="section-head"><span class="kicker">Fit · Produto ideal</span><h2>Fit com os produtos</h2></div>
-    <div class="card score-how">
-        <h3>ⓘ Como calculamos o fit</h3><div class="hint">régua do Playbook Comercial · ajustável no código</div>
-<p class="how-lead">O cargo define o produto:</p>
-        <ul class="how-list">
-          <li><b>PRO</b> <span>Especialista em diante: Especialista, Coordenador, Gerente, Consultor, Diretor...</span></li>
-          <li><b>START</b> <span>Todo mundo abaixo do cargo de Especialista</span></li>
-        </ul>
-        <p class="how-foot">Desempregado é sempre <b style="color:#FF5C00">START</b>, independente do cargo. Experiência, idade, renda e "aceitaria o desafio" não entram no fit.</p>
-    </div>
-  </section>
-
-  <!-- QUALIDADE & ICP -->
-  <section class="section">
-    <div class="section-head"><span class="kicker">Qualidade & ICP</span><h2>Poder de compra e perfil</h2></div>
-    <div class="grid g-3">
+  <!-- SÉRIE TEMPORAL + ICP + PERFIL (one page) -->
+  <section class="section" style="padding:0 0 32px">
+    <div class="card"><h3>Leads ao longo do tempo</h3><div class="hint">diário + acumulado</div><div class="chart-box time"><canvas id="c-time"></canvas><div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19V5m0 14h16M8 15l3-4 3 2 4-6"/></svg><span class="big">Aguardando os primeiros leads</span><span class="small">o gráfico aparece quando entrar o 1º cadastro</span></div></div></div>
+    <div class="grid g-3" style="margin-top:12px">
       <div class="card"><h3>Faixa de renda</h3><div class="hint">poder de compra</div><div class="chart-box"><canvas id="c-renda"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
       <div class="card"><h3>Situação atual</h3><div class="hint">Estagnado × Transição</div><div class="chart-box"><canvas id="c-situacao"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
       <div class="card"><h3>Conhece o Roberto há</h3><div class="hint">audiência fria × quente</div><div class="chart-box"><canvas id="c-conhece"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
     </div>
-  </section>
-
-  <!-- PERFIL -->
-  <section class="section">
-    <div class="section-head"><span class="kicker">Perfil</span><h2>Quem é a audiência</h2></div>
-    <div class="grid g-3">
+    <div class="grid g-3" style="margin-top:12px">
       <div class="card"><h3>Estados</h3><div class="hint">top por volume</div><div class="chart-box"><canvas id="c-estado"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
       <div class="card"><h3>Faixa etária</h3><div class="hint">&nbsp;</div><div class="chart-box"><canvas id="c-idade"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
       <div class="card"><h3>Função / atividade</h3><div class="hint">perfil profissional</div><div class="chart-box"><canvas id="c-funcao"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
@@ -552,14 +485,6 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
           y:{position:"left",grid:{color:"rgba(43,47,51,.6)"},ticks:{color:DIM,precision:0}},
           y1:{position:"right",grid:{display:false},ticks:{color:DIM,precision:0}}}}});
 
-    // mídia
-    var mid=count(rows,midiaOf);doughnut("c-midia",Object.keys(mid),Object.values(mid));
-    // canal
-    var can=sortedEntries(count(rows,function(r){return r.canal;}),8);
-    barChart("c-canal",can.map(function(e){return e[0];}),can.map(function(e){return e[1];}),{horizontal:true});
-    // utm campaign
-    var utm=sortedEntries(count(rows.filter(function(r){return r.utm_campaign;}),function(r){return r.utm_campaign;}),8);
-    barChart("c-utm",utm.map(function(e){return e[0];}),utm.map(function(e){return e[1];}),{horizontal:true,color:ORANGE2});
     // renda
     var rendaOrder=orderByFreqOrList(rows,"renda");
     barChart("c-renda",rendaOrder.map(function(e){return e[0];}),rendaOrder.map(function(e){return e[1];}));
@@ -578,13 +503,6 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
     // conhece
     var con=sortedEntries(count(rows,function(r){return r.conhece;}));
     barChart("c-conhece",con.map(function(e){return e[0];}),con.map(function(e){return e[1];}),{horizontal:true,color:ORANGE2});
-    // Score geral
-    if(scoreOk){
-      renderScoreDist(rows);
-      var sByCanal=avgBy(rows,function(r){return r.canal;},function(r){return leadScore(r);});
-      var sbc=Object.entries(sByCanal).sort(function(a,b){return b[1]-a[1];});
-      barChart("c-scorecanal",sbc.map(function(e){return e[0];}),sbc.map(function(e){return Math.round(e[1]);}),{horizontal:true});
-    }
 
     buildCanalFilter();
     stampUpdated();
@@ -595,15 +513,6 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
 
   function shorten(s,n){return s.length>n?s.slice(0,n-1)+"…":s;}
 
-  function renderScoreDist(rows){
-    var ctx=document.getElementById("c-scoredist");if(!ctx)return;destroy("c-scoredist");
-    var bins=[0,0,0,0,0],lab=["0-20","20-40","40-60","60-80","80-100"];
-    rows.forEach(function(r){bins[Math.min(4,Math.floor(leadScore(r)/20))]++;});
-    var colors=bins.map(function(_,i){return tierColor(i*20+10);});
-    charts["c-scoredist"]=new Chart(ctx,{type:"bar",data:{labels:lab,datasets:[{data:bins,backgroundColor:ORANGE,borderRadius:5,maxBarThickness:64}]},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{tooltip:{callbacks:{label:function(cc){return cc.raw+" leads";}}}},
-        scales:{x:{grid:{display:false},ticks:{color:DIM}},y:{grid:{color:"rgba(43,47,51,.6)"},ticks:{color:DIM,precision:0}}}}});
-  }
 
 
   function buildCanalFilter(){
