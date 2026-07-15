@@ -7,20 +7,20 @@
 <title>Painel de Leads · Workshop GRC TI · ITXPRO</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Jost:wght@500;600;700&family=Hanken+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Lora:wght@500;600;700&family=Hanken+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 :root{
-  --bg:#111214; --surface:#1A1C1F; --surface-2:#202327; --line:#2B2F33;
-  --orange:#FF5C00; --orange-hot:#FF7A1A; --orange-deep:#C23F00; --orange-tint:rgba(255,92,0,.14);
-  --on-orange:#1A0A00; --text:#EDEAE2; --muted:#B4BAC0; --dim:#7D848B;
-  --display:'Jost',-apple-system,sans-serif; --body:'Hanken Grotesk',-apple-system,sans-serif; --mono:'IBM Plex Mono',Menlo,monospace;
+  --bg:#F0EEE6; --surface:#FAF9F5; --surface-2:#F4F2EA; --line:#E0DCD1;
+  --orange:#D97757; --orange-hot:#BF6141; --orange-deep:#A84E30; --orange-tint:rgba(217,119,87,.14);
+  --on-orange:#FAF9F5; --text:#191919; --muted:#6B6960; --dim:#8A867B;
+  --display:'Lora',Georgia,serif; --body:'Hanken Grotesk',-apple-system,sans-serif; --mono:'IBM Plex Mono',Menlo,monospace;
 }
 *{margin:0;padding:0;box-sizing:border-box}
 body{
   background-color:var(--bg);
-  background-image:linear-gradient(rgba(74,85,96,.09) 1px,transparent 1px),linear-gradient(90deg,rgba(74,85,96,.09) 1px,transparent 1px);
+  background-image:linear-gradient(rgba(25,25,25,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(25,25,25,.05) 1px,transparent 1px);
   background-size:34px 34px;
   color:var(--text);font-family:var(--body);font-size:15px;line-height:1.6;-webkit-font-smoothing:antialiased;
 }
@@ -28,7 +28,7 @@ body{
 h1,h2,h3{font-family:var(--display);font-weight:700;text-transform:uppercase;letter-spacing:.02em}
 
 /* topbar */
-header{position:sticky;top:0;z-index:20;background:rgba(17,18,20,.92);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+header{position:sticky;top:0;z-index:20;background:rgba(240,238,230,.92);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
 .topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:14px 0;flex-wrap:wrap}
 .brand{display:flex;align-items:center;gap:14px}
 .brand img{height:24px}
@@ -40,14 +40,14 @@ header{position:sticky;top:0;z-index:20;background:rgba(17,18,20,.92);backdrop-f
 .status b{color:var(--text);font-weight:600}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
 
-.demo-banner{background:var(--orange-tint);border-bottom:1px solid rgba(255,92,0,.3);color:var(--orange-hot);font-family:var(--mono);font-size:12px;letter-spacing:.03em;text-align:center;padding:8px 16px}
+.demo-banner{background:var(--orange-tint);border-bottom:1px solid rgba(217,119,87,.35);color:var(--orange-hot);font-family:var(--mono);font-size:12px;letter-spacing:.03em;text-align:center;padding:8px 16px}
 .demo-banner.hidden{display:none}
 
 /* filters */
 .filters{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 .filters label{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--dim)}
 .filters select,.filters input[type=date]{font-family:var(--body);font-size:13px;background:var(--surface);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:pointer}
-.filters input[type=date]{color-scheme:dark}
+.filters input[type=date]{color-scheme:light}
 .filters select:focus-visible,.filters input[type=date]:focus-visible{outline:2px solid var(--orange);outline-offset:1px}
 .f-reset{font-family:var(--mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;background:transparent;color:var(--orange);border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:pointer}
 .f-reset:hover{border-color:var(--orange)}
@@ -70,7 +70,7 @@ header{position:sticky;top:0;z-index:20;background:rgba(17,18,20,.92);backdrop-f
 .kpi-info summary{list-style:none;display:inline;cursor:pointer;color:var(--dim);font-size:12px}
 .kpi-info summary::-webkit-details-marker{display:none}
 .kpi-info summary:hover,.kpi-info[open] summary{color:var(--orange)}
-.kpi-info .pop{position:absolute;top:calc(100% - 8px);left:0;min-width:270px;z-index:30;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:14px 16px;box-shadow:0 16px 34px rgba(0,0,0,.5);text-transform:none;letter-spacing:0;cursor:auto}
+.kpi-info .pop{position:absolute;top:calc(100% - 8px);left:0;min-width:270px;z-index:30;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:14px 16px;box-shadow:0 16px 34px rgba(25,25,25,.16);text-transform:none;letter-spacing:0;cursor:auto}
 .kpi-info .pop.pop-right{left:auto;right:0}
 .kpi-info .pop p{font-family:var(--body);font-size:12px;color:var(--muted);margin:0 0 7px;line-height:1.55}
 .kpi-info .pop p:last-child{margin-bottom:0}
@@ -124,7 +124,7 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
 <header>
   <div class="wrap topbar">
     <div class="brand">
-      <img src="marca-itxpro-branco.png" alt="ITXPRO">
+      <img src="marca-itxpro-escuro.png" alt="ITXPRO">
       <span class="sep"></span>
       <span class="ttl">Painel de Leads · Workshop GRC TI</span>
     </div>
@@ -154,10 +154,10 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
     <div class="kpi-grid">
       <div class="kpi"><div class="label">Total de leads</div><div class="val" id="k-total">0</div><div class="sub" id="k-total-sub">&nbsp;</div></div>
       <div class="kpi"><div class="label">Leads hoje</div><div class="val" id="k-hoje">0</div><div class="sub" id="k-hoje-sub">&nbsp;</div></div>
-      <div class="kpi"><div class="label">Score médio <details class="kpi-info"><summary title="Como calculamos">&#9432;</summary><div class="pop"><p><b>Score Geral (0&ndash;100)</b> = soma das 3 perguntas:</p><p><b>Satisfa&ccedil;&atilde;o com a carreira</b><br>Tot. insatisfeito 45 &middot; Insatisfeito 30 &middot; Satisfeito 10 &middot; Tot. satisfeito 0</p><p><b>Aceitaria o desafio</b> &mdash; Sim 30 &middot; N&atilde;o 0</p><p><b>Conhece o Roberto</b><br>+1 ano 25 &middot; ~6m 19 &middot; 1&ndash;3m 13 &middot; Acabei 7</p><p>Classifica&ccedil;&atilde;o: <b style="color:#FF5C00">Quente</b> &ge; 70 &middot; <b style="color:#E8A33D">Morno</b> 40&ndash;69 &middot; Frio &lt; 40.</p></div></details></div><div class="val" id="k-temp">—</div><div class="sub" id="k-temp-sub">&nbsp;</div></div>
+      <div class="kpi"><div class="label">Score médio <details class="kpi-info"><summary title="Como calculamos">&#9432;</summary><div class="pop"><p><b>Score Geral (0&ndash;100)</b> = soma das 3 perguntas:</p><p><b>Satisfa&ccedil;&atilde;o com a carreira</b><br>Tot. insatisfeito 45 &middot; Insatisfeito 30 &middot; Satisfeito 10 &middot; Tot. satisfeito 0</p><p><b>Aceitaria o desafio</b> &mdash; Sim 30 &middot; N&atilde;o 0</p><p><b>Conhece o Roberto</b><br>+1 ano 25 &middot; ~6m 19 &middot; 1&ndash;3m 13 &middot; Acabei 7</p><p>Classifica&ccedil;&atilde;o: <b style="color:#D97757">Quente</b> &ge; 70 &middot; <b style="color:#C08A2E">Morno</b> 40&ndash;69 &middot; Frio &lt; 40.</p></div></details></div><div class="val" id="k-temp">—</div><div class="sub" id="k-temp-sub">&nbsp;</div></div>
       <div class="kpi"><div class="label">Renda média</div><div class="val" id="k-renda">—</div><div class="sub" id="k-renda-sub">&nbsp;</div></div>
-      <div class="kpi"><div class="label">Fit START <details class="kpi-info"><summary title="Como calculamos">&#9432;</summary><div class="pop pop-right"><p><b>O cargo define o produto:</b></p><p><b>PRO</b> &mdash; Especialista em diante (Especialista, Coordenador, Gerente, Consultor, Diretor...)</p><p><b>START</b> &mdash; abaixo do cargo de Especialista</p><p>Desempregado &eacute; sempre <b style="color:#FF5C00">START</b>. Experi&ecirc;ncia, idade, renda e &quot;aceitaria o desafio&quot; n&atilde;o entram no fit.</p></div></details></div><div class="val" id="k-fit-start">—</div><div class="sub" id="k-fit-start-sub">&nbsp;</div></div>
-      <div class="kpi"><div class="label">Fit PRO <details class="kpi-info"><summary title="Como calculamos">&#9432;</summary><div class="pop pop-right"><p><b>O cargo define o produto:</b></p><p><b>PRO</b> &mdash; Especialista em diante (Especialista, Coordenador, Gerente, Consultor, Diretor...)</p><p><b>START</b> &mdash; abaixo do cargo de Especialista</p><p>Desempregado &eacute; sempre <b style="color:#FF5C00">START</b>. Experi&ecirc;ncia, idade, renda e &quot;aceitaria o desafio&quot; n&atilde;o entram no fit.</p></div></details></div><div class="val" id="k-fit-pro">—</div><div class="sub" id="k-fit-pro-sub">&nbsp;</div></div>
+      <div class="kpi"><div class="label">Fit START <details class="kpi-info"><summary title="Como calculamos">&#9432;</summary><div class="pop pop-right"><p><b>O cargo define o produto:</b></p><p><b>PRO</b> &mdash; Especialista em diante (Especialista, Coordenador, Gerente, Consultor, Diretor...)</p><p><b>START</b> &mdash; abaixo do cargo de Especialista</p><p>Desempregado &eacute; sempre <b style="color:#D97757">START</b>. Experi&ecirc;ncia, idade, renda e &quot;aceitaria o desafio&quot; n&atilde;o entram no fit.</p></div></details></div><div class="val" id="k-fit-start">—</div><div class="sub" id="k-fit-start-sub">&nbsp;</div></div>
+      <div class="kpi"><div class="label">Fit PRO <details class="kpi-info"><summary title="Como calculamos">&#9432;</summary><div class="pop pop-right"><p><b>O cargo define o produto:</b></p><p><b>PRO</b> &mdash; Especialista em diante (Especialista, Coordenador, Gerente, Consultor, Diretor...)</p><p><b>START</b> &mdash; abaixo do cargo de Especialista</p><p>Desempregado &eacute; sempre <b style="color:#D97757">START</b>. Experi&ecirc;ncia, idade, renda e &quot;aceitaria o desafio&quot; n&atilde;o entram no fit.</p></div></details></div><div class="val" id="k-fit-pro">—</div><div class="sub" id="k-fit-pro-sub">&nbsp;</div></div>
     </div>
   </section>
 
@@ -193,8 +193,8 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
   };
 
   var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  var ORANGE="#FF5C00", ORANGE2="#FF7A1A", DIM="#7D848B", LINE="#2B2F33", MUTED="#B4BAC0";
-  var PALETTE=["#FF5C00","#FF7A1A","#C23F00","#8a5a3c","#B4BAC0","#5F6A72","#E8A33D"];
+  var ORANGE="#D97757", ORANGE2="#C98A6E", DIM="#8A867B", LINE="rgba(25,25,25,.12)", MUTED="#6B6960";
+  var PALETTE=["#D97757","#E8B4A0","#A84E30","#8A8B6E","#B5AF9F","#6B6960","#D9A03D"];
 
   // Chart.js defaults (tema escuro)
   if(window.Chart){
@@ -208,10 +208,10 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
     // e a animacao fica presa no frame 0 (eixos aparecem, barras/linhas nao).
     // Sem animacao, o grafico e pintado completo de forma sincrona, sempre.
     Chart.defaults.animation=false;
-    Chart.defaults.plugins.tooltip.backgroundColor="#0d0e10";
+    Chart.defaults.plugins.tooltip.backgroundColor="#191919";
     Chart.defaults.plugins.tooltip.borderColor=LINE;
     Chart.defaults.plugins.tooltip.borderWidth=1;
-    Chart.defaults.plugins.tooltip.titleColor="#EDEAE2";
+    Chart.defaults.plugins.tooltip.titleColor="#FAF9F5";
     Chart.defaults.plugins.tooltip.bodyColor=MUTED;
     Chart.defaults.plugins.tooltip.padding=10;
   }
@@ -317,7 +317,7 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
   }
   function leadScore(r){return Math.min(100,matchPts(r.satisfacao,SCORE_CONFIG.satisfacao,0)+matchPts(r.aceitar,SCORE_CONFIG.aceitar,0)+matchPts(r.conhece,SCORE_CONFIG.conhece,7));}
   function tierOf(sc){return sc>=SCORE_CONFIG.quente?"Quente":(sc>=SCORE_CONFIG.morno?"Morno":"Frio");}
-  function tierColor(sc){return sc>=SCORE_CONFIG.quente?ORANGE:(sc>=SCORE_CONFIG.morno?"#E8A33D":"#5F6A72");}
+  function tierColor(sc){return sc>=SCORE_CONFIG.quente?ORANGE:(sc>=SCORE_CONFIG.morno?"#C08A2E":"#8A867B");}
 
   // ===== Fit de produto (regra do Renato, 07/07, simplificada em 07/07) =====
   // Fit BINARIO. O cargo define o produto: Especialista em diante -> PRO;
@@ -412,11 +412,11 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
     opts=opts||{};destroy(id);var ctx=document.getElementById(id);if(!ctx)return;
     charts[id]=new Chart(ctx,{type:"bar",data:{labels:labels,datasets:[{data:data,backgroundColor:opts.color||ORANGE,borderRadius:5,maxBarThickness:opts.horizontal?22:46}]},
       options:{indexAxis:opts.horizontal?"y":"x",responsive:true,maintainAspectRatio:false,
-        scales:{x:{grid:{color:"rgba(43,47,51,.6)"},ticks:{color:DIM}},y:{grid:{color:"rgba(43,47,51,.6)"},ticks:{color:DIM}}}}});
+        scales:{x:{grid:{color:"rgba(25,25,25,.08)"},ticks:{color:DIM}},y:{grid:{color:"rgba(25,25,25,.08)"},ticks:{color:DIM}}}}});
   }
   function doughnut(id,labels,data){
     destroy(id);var ctx=document.getElementById(id);if(!ctx)return;
-    charts[id]=new Chart(ctx,{type:"doughnut",data:{labels:labels,datasets:[{data:data,backgroundColor:PALETTE,borderColor:"#1A1C1F",borderWidth:2}]},
+    charts[id]=new Chart(ctx,{type:"doughnut",data:{labels:labels,datasets:[{data:data,backgroundColor:PALETTE,borderColor:"#FAF9F5",borderWidth:2}]},
       options:{responsive:true,maintainAspectRatio:false,cutout:"64%",plugins:{legend:{display:true,position:"right",labels:{color:MUTED,boxWidth:10,font:{size:11}}}}}});
   }
 
@@ -476,12 +476,12 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
       data:{labels:days.map(function(d){var p=d.split("-");return p[2]+"/"+p[1];}),
         datasets:[
           {type:"line",label:"Leads por dia",data:days.map(function(d){return byDay[d];}),borderColor:ORANGE,borderWidth:2.5,fill:false,tension:.3,pointRadius:4,pointBackgroundColor:ORANGE},
-          {type:"bar",label:"Leads por dia (barras)",data:days.map(function(d){return byDay[d];}),backgroundColor:"rgba(255,122,26,.28)",borderRadius:4,maxBarThickness:22}
+          {type:"bar",label:"Leads por dia (barras)",data:days.map(function(d){return byDay[d];}),backgroundColor:"rgba(217,119,87,.25)",borderRadius:4,maxBarThickness:22}
         ]},
       options:{responsive:true,maintainAspectRatio:false,
         plugins:{legend:{display:false},tooltip:{filter:function(it){return it.datasetIndex===0;},callbacks:{label:function(cc){return cc.raw+" leads";}}}},
         scales:{x:{grid:{display:false},ticks:{color:DIM,maxRotation:0,autoSkip:true}},
-          y:{position:"left",beginAtZero:true,grid:{color:"rgba(43,47,51,.6)"},ticks:{color:DIM,precision:0}}}}});
+          y:{position:"left",beginAtZero:true,grid:{color:"rgba(25,25,25,.08)"},ticks:{color:DIM,precision:0}}}}});
 
     // renda
     var rendaOrder=orderByFreqOrList(rows,"renda");
