@@ -163,7 +163,7 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
 
   <!-- SÉRIE TEMPORAL + ICP + PERFIL (one page) -->
   <section class="section" style="padding:0 0 32px">
-    <div class="card"><h3>Leads ao longo do tempo</h3><div class="hint">diário + acumulado</div><div class="chart-box time"><canvas id="c-time"></canvas><div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19V5m0 14h16M8 15l3-4 3 2 4-6"/></svg><span class="big">Aguardando os primeiros leads</span><span class="small">o gráfico aparece quando entrar o 1º cadastro</span></div></div></div>
+    <div class="card"><h3>Leads ao longo do tempo</h3><div class="hint">captados por dia</div><div class="chart-box time"><canvas id="c-time"></canvas><div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19V5m0 14h16M8 15l3-4 3 2 4-6"/></svg><span class="big">Aguardando os primeiros leads</span><span class="small">o gráfico aparece quando entrar o 1º cadastro</span></div></div></div>
     <div class="grid g-3" style="margin-top:12px">
       <div class="card"><h3>Faixa de renda</h3><div class="hint">poder de compra</div><div class="chart-box"><canvas id="c-renda"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
       <div class="card"><h3>Situação atual</h3><div class="hint">Estagnado × Transição</div><div class="chart-box"><canvas id="c-situacao"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
@@ -471,19 +471,17 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
     // série temporal
     var byDay=count(rows,function(r){return ymd(r.data);});
     var days=Object.keys(byDay).sort();
-    var cum=0, cumArr=days.map(function(d){cum+=byDay[d];return cum;});
     destroy("c-time");
     charts["c-time"]=new Chart(document.getElementById("c-time"),{
       data:{labels:days.map(function(d){var p=d.split("-");return p[2]+"/"+p[1];}),
         datasets:[
-          {type:"line",label:"Acumulado",data:cumArr,borderColor:ORANGE,borderWidth:2,fill:false,tension:.3,pointRadius:0,yAxisID:"y1"},
-          {type:"bar",label:"Por dia",data:days.map(function(d){return byDay[d];}),backgroundColor:"rgba(255,122,26,.55)",borderRadius:4,maxBarThickness:22,yAxisID:"y"}
+          {type:"line",label:"Leads por dia",data:days.map(function(d){return byDay[d];}),borderColor:ORANGE,borderWidth:2.5,fill:false,tension:.3,pointRadius:4,pointBackgroundColor:ORANGE},
+          {type:"bar",label:"Leads por dia (barras)",data:days.map(function(d){return byDay[d];}),backgroundColor:"rgba(255,122,26,.28)",borderRadius:4,maxBarThickness:22}
         ]},
       options:{responsive:true,maintainAspectRatio:false,
-        plugins:{legend:{display:true,labels:{color:MUTED,boxWidth:10}}},
+        plugins:{legend:{display:false},tooltip:{filter:function(it){return it.datasetIndex===0;},callbacks:{label:function(cc){return cc.raw+" leads";}}}},
         scales:{x:{grid:{display:false},ticks:{color:DIM,maxRotation:0,autoSkip:true}},
-          y:{position:"left",grid:{color:"rgba(43,47,51,.6)"},ticks:{color:DIM,precision:0}},
-          y1:{position:"right",beginAtZero:true,grid:{display:false},ticks:{color:DIM,precision:0}}}}});
+          y:{position:"left",beginAtZero:true,grid:{color:"rgba(43,47,51,.6)"},ticks:{color:DIM,precision:0}}}}});
 
     // renda
     var rendaOrder=orderByFreqOrList(rows,"renda");
