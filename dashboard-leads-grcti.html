@@ -476,14 +476,14 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
     charts["c-time"]=new Chart(document.getElementById("c-time"),{
       data:{labels:days.map(function(d){var p=d.split("-");return p[2]+"/"+p[1];}),
         datasets:[
-          {type:"line",label:"Acumulado",data:cumArr,borderColor:ORANGE,backgroundColor:"rgba(255,92,0,.12)",fill:true,tension:.3,pointRadius:0,yAxisID:"y1"},
+          {type:"line",label:"Acumulado",data:cumArr,borderColor:ORANGE,borderWidth:2,fill:false,tension:.3,pointRadius:0,yAxisID:"y1"},
           {type:"bar",label:"Por dia",data:days.map(function(d){return byDay[d];}),backgroundColor:"rgba(255,122,26,.55)",borderRadius:4,maxBarThickness:22,yAxisID:"y"}
         ]},
       options:{responsive:true,maintainAspectRatio:false,
         plugins:{legend:{display:true,labels:{color:MUTED,boxWidth:10}}},
         scales:{x:{grid:{display:false},ticks:{color:DIM,maxRotation:0,autoSkip:true}},
           y:{position:"left",grid:{color:"rgba(43,47,51,.6)"},ticks:{color:DIM,precision:0}},
-          y1:{position:"right",grid:{display:false},ticks:{color:DIM,precision:0}}}}});
+          y1:{position:"right",beginAtZero:true,grid:{display:false},ticks:{color:DIM,precision:0}}}}});
 
     // renda
     var rendaOrder=orderByFreqOrList(rows,"renda");
