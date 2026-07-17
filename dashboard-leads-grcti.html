@@ -112,8 +112,16 @@ body:not(.is-empty) .empty{display:none}
 .fstep.dim .fbar{background:var(--surface-2)}
 .fstep.dim .fname,.fstep.dim .fnums{color:var(--muted)}
 
-/* estado "aguardando score": some scatter/funil/temp-canal quando score indisponível */
-body.no-score #k-temp{font-size:15px;color:var(--dim)}
+/* cross-filter: chips de filtros ativos */
+.xf-chips{display:none;flex-wrap:wrap;gap:8px;align-items:center;padding:12px 0 0}
+.xf-chips.on{display:flex}
+.xf-chip{font-family:var(--mono);font-size:11px;letter-spacing:.03em;color:var(--orange-hot);background:var(--orange-tint);border:1px solid rgba(255,92,0,.35);border-radius:999px;padding:6px 12px;cursor:pointer;user-select:none}
+.xf-chip:hover{border-color:var(--orange)}
+.xf-chip b{font-weight:600;color:var(--text)}
+.xf-clear{font-family:var(--mono);font-size:11px;color:var(--dim);background:transparent;border:1px solid var(--line);border-radius:999px;padding:6px 12px;cursor:pointer}
+.xf-clear:hover{color:var(--text);border-color:var(--dim)}
+.kpi .val.ok{color:#57B87B}
+.kpi .val.bad{color:#FF5C5C}
 
 footer{border-top:1px solid var(--line);padding:14px 0 18px;text-align:center}
 footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.04em}
@@ -154,20 +162,28 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
     <div class="kpi-grid">
       <div class="kpi"><div class="label">Total de leads</div><div class="val" id="k-total">0</div><div class="sub" id="k-total-sub">&nbsp;</div></div>
       <div class="kpi"><div class="label">Leads hoje</div><div class="val" id="k-hoje">0</div><div class="sub" id="k-hoje-sub">&nbsp;</div></div>
-      <div class="kpi"><div class="label">Score médio <details class="kpi-info"><summary title="Como calculamos">&#9432;</summary><div class="pop"><p><b>Score Geral (0&ndash;100)</b> = soma das 3 perguntas:</p><p><b>Satisfa&ccedil;&atilde;o com a carreira</b><br>Tot. insatisfeito 45 &middot; Insatisfeito 30 &middot; Satisfeito 10 &middot; Tot. satisfeito 0</p><p><b>Aceitaria o desafio</b> &mdash; Sim 30 &middot; N&atilde;o 0</p><p><b>Conhece o Roberto</b><br>+1 ano 25 &middot; ~6m 19 &middot; 1&ndash;3m 13 &middot; Acabei 7</p><p>Classifica&ccedil;&atilde;o: <b style="color:#FF5C00">Quente</b> &ge; 70 &middot; <b style="color:#E8A33D">Morno</b> 40&ndash;69 &middot; Frio &lt; 40.</p></div></details></div><div class="val" id="k-temp">—</div><div class="sub" id="k-temp-sub">&nbsp;</div></div>
-      <div class="kpi"><div class="label">Renda média</div><div class="val" id="k-renda">—</div><div class="sub" id="k-renda-sub">&nbsp;</div></div>
-      <div class="kpi"><div class="label">Fit START <details class="kpi-info"><summary title="Como calculamos">&#9432;</summary><div class="pop pop-right"><p><b>O cargo define o produto:</b></p><p><b>PRO</b> &mdash; Especialista em diante (Especialista, Coordenador, Gerente, Consultor, Diretor...)</p><p><b>START</b> &mdash; abaixo do cargo de Especialista</p><p>Desempregado &eacute; sempre <b style="color:#FF5C00">START</b>. Experi&ecirc;ncia, idade, renda e &quot;aceitaria o desafio&quot; n&atilde;o entram no fit.</p></div></details></div><div class="val" id="k-fit-start">—</div><div class="sub" id="k-fit-start-sub">&nbsp;</div></div>
-      <div class="kpi"><div class="label">Fit PRO <details class="kpi-info"><summary title="Como calculamos">&#9432;</summary><div class="pop pop-right"><p><b>O cargo define o produto:</b></p><p><b>PRO</b> &mdash; Especialista em diante (Especialista, Coordenador, Gerente, Consultor, Diretor...)</p><p><b>START</b> &mdash; abaixo do cargo de Especialista</p><p>Desempregado &eacute; sempre <b style="color:#FF5C00">START</b>. Experi&ecirc;ncia, idade, renda e &quot;aceitaria o desafio&quot; n&atilde;o entram no fit.</p></div></details></div><div class="val" id="k-fit-pro">—</div><div class="sub" id="k-fit-pro-sub">&nbsp;</div></div>
+      <div class="kpi"><div class="label">MQL START <details class="kpi-info"><summary title="Como calculamos">&#9432;</summary><div class="pop"><p><b>MQL START (todas as condições):</b></p><p>Status de carreira: desempregado, em transição, recolocação ou quer entrar no mercado</p><p>Aceita o desafio de mudar de emprego: <b>Sim</b></p><p>Exclui <b>estudante</b> e <b>aluno da mentoria</b></p></div></details></div><div class="val" id="k-mql-start">—</div><div class="sub" id="k-mql-start-sub">&nbsp;</div></div>
+      <div class="kpi"><div class="label">MQL PRO <details class="kpi-info"><summary title="Como calculamos">&#9432;</summary><div class="pop"><p><b>MQL PRO (todas as condições):</b></p><p>Última faixa de renda entre <b>10k e 25k</b> (acima de 25k: futuro produto executivo)</p><p>Status: já atua (não pode estar desempregado, em transição, nem querendo entrar no mercado)</p><p>Faixa etária <b>35 a 54 anos</b></p><p>Não pode estar <b>totalmente satisfeito</b> com a carreira</p><p>Exclui <b>estudante</b> e <b>aluno da mentoria</b></p></div></details></div><div class="val" id="k-mql-pro">—</div><div class="sub" id="k-mql-pro-sub">&nbsp;</div></div>
+      <div class="kpi"><div class="label">% MQL <details class="kpi-info"><summary title="Meta de qualidade">&#9432;</summary><div class="pop pop-right"><p><b>Meta do Roberto (17/07):</b></p><p>MQL START + MQL PRO devem somar <b>pelo menos 80%</b> dos leads captados (sem contar alunos).</p><p>Abaixo de 80% = criativo ou segmentação captando o público errado.</p></div></details></div><div class="val" id="k-mql-pct">—</div><div class="sub" id="k-mql-pct-sub">meta &ge; 80%</div></div>
+      <div class="kpi"><div class="label">Alunos</div><div class="val" id="k-alunos">—</div><div class="sub" id="k-alunos-sub">fora dos MQLs</div></div>
     </div>
   </section>
 
-  <!-- SÉRIE TEMPORAL + ICP + PERFIL (one page) -->
+  <!-- filtros ativos do cross-filter -->
+  <div class="xf-chips" id="xf-chips"></div>
+
+  <!-- SÉRIE TEMPORAL + QUALIFICAÇÃO + ICP + PERFIL (one page, BI) -->
   <section class="section" style="padding:0 0 32px">
-    <div class="card"><h3>Leads ao longo do tempo</h3><div class="hint">captados por dia</div><div class="chart-box time"><canvas id="c-time"></canvas><div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19V5m0 14h16M8 15l3-4 3 2 4-6"/></svg><span class="big">Aguardando os primeiros leads</span><span class="small">o gráfico aparece quando entrar o 1º cadastro</span></div></div></div>
+    <div class="card"><h3>Leads ao longo do tempo</h3><div class="hint">captados por dia · clique num dia para filtrar</div><div class="chart-box time"><canvas id="c-time"></canvas><div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 19V5m0 14h16M8 15l3-4 3 2 4-6"/></svg><span class="big">Aguardando os primeiros leads</span><span class="small">o gráfico aparece quando entrar o 1º cadastro</span></div></div></div>
     <div class="grid g-3" style="margin-top:12px">
+      <div class="card"><h3>Captação por criativo</h3><div class="hint">utm_content · qual anúncio traz lead</div><div class="chart-box"><canvas id="c-criativo"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
+      <div class="card"><h3>Satisfação com a carreira</h3><div class="hint">urgência declarada</div><div class="chart-box"><canvas id="c-satisfacao"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
+      <div class="card"><h3>Aceitaria o desafio</h3><div class="hint">prontidão para mudar de emprego</div><div class="chart-box"><canvas id="c-aceitar"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
+    </div>
+    <div class="grid g-3" style="margin-top:12px">
+      <div class="card"><h3>Conhece o Roberto há</h3><div class="hint">audiência fria × quente</div><div class="chart-box"><canvas id="c-conhece"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
       <div class="card"><h3>Faixa de renda</h3><div class="hint">poder de compra</div><div class="chart-box"><canvas id="c-renda"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
       <div class="card"><h3>Situação atual</h3><div class="hint">Estagnado × Transição</div><div class="chart-box"><canvas id="c-situacao"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
-      <div class="card"><h3>Conhece o Roberto há</h3><div class="hint">audiência fria × quente</div><div class="chart-box"><canvas id="c-conhece"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
     </div>
     <div class="grid g-3" style="margin-top:12px">
       <div class="card"><h3>Estados</h3><div class="hint">top por volume</div><div class="chart-box"><canvas id="c-estado"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
@@ -254,13 +270,13 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
       data:fieldFor(headers,["data"]),
       utm_source:fieldFor(headers,["utm_source"]),
       utm_campaign:fieldFor(headers,["utm_campaign"]),
+      utm_content:fieldFor(headers,["utm_content"]),
       gclid:fieldFor(headers,["gclid"]),
       fbclid:fieldFor(headers,["fbclid"])
     };
   }
   function normalizeRows(raw,headers){
     var map=buildMapper(headers);
-    scoreOk = scoreOk || !!(map.satisfacao && map.aceitar && map.conhece);
     return raw.map(function(o){
       function g(key){return map[key]?o[map[key]]:"";}
       return {
@@ -281,6 +297,7 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
         data:parseDate(g("data"))||new Date(),
         utm_source:(g("utm_source")||"").toString().trim(),
         utm_campaign:(g("utm_campaign")||"").toString().trim(),
+        utm_content:(g("utm_content")||"").toString().trim(),
         gclid:(g("gclid")||"").toString().trim(),
         fbclid:(g("fbclid")||"").toString().trim()
       };
@@ -298,58 +315,82 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
   }
   function aovivoPos(r){return /sim|poss|vou|confirm|certeza/.test(norm(r.aovivo));}
 
-  // ===== Score Geral (0-100) — regua transparente e ajustavel =====
-  var SCORE_CONFIG = {
-    quente: 70, morno: 40,     // faixas de classificacao do Score Geral (0-100)
-    satisfacao: [ [/tot\w* insatisf/,45], [/insatisf/,30], [/tot\w* satisf/,0], [/satisf/,10] ],
-    aceitar: [ [/sim/,30] ],   // default 0 (Nao)
-    rendaFaixa: [ [20,23],[15,20],[10,16],[5,12] ], // + <5K:8, +25K:25
-    conhece: [ [/bastante tempo|mais de 1 ?ano|mais de um ano/,25],[/6 ?meses|seis meses/,19],[/1 a 3|um a tres|pouco tempo/,13],[/acabei|anunci|nao conhec/,7] ]
+  // ===== MQL START / PRO (regras fechadas por Renato + Roberto em 17/07) =====
+  // PRO: renda 10k-25k + ja atua (nao desempregado/transicao/entrar no mercado)
+  //      + 35-54 anos + nao "totalmente satisfeito" + nao estudante/aluno.
+  // START: status desempregado/transicao/recolocacao/entrar no mercado
+  //      + aceita o desafio (Sim) + nao estudante/aluno.
+  // Aluno ("Ja faco parte da mentoria" no canal) nunca e MQL e tem card proprio.
+  // Meta do Roberto: START+PRO >= 80% dos leads captados (base sem alunos).
+  var MQL_CONFIG = {
+    aluno: /faco parte da mentoria|ja sou alun|sou da mentoria/,
+    estudante: /estudante/,
+    statusStart: /desempregad|transic|recoloca|entrar no mercado|quero entrar/,
+    idadePro: /35 a 44|45 a 54/,
+    totSatisf: /tot\w* satisf/,
+    metaPct: 80
   };
-  function matchPts(txt, rules, def){var x=norm(txt);for(var i=0;i<rules.length;i++){if(rules[i][0].test(x))return rules[i][1];}return def;}
-  function rendaScore(txt){
-    var x=norm(txt);
-    if(/menos|ate 5|inferior|< ?5/.test(x)) return 8;
-    if(/acima|mais de 25|superior|25k\+/.test(x)) return 25;
-    var nums=(x.match(/\d+/g)||[]).map(Number), lo=nums.length?Math.min.apply(null,nums):0;
-    for(var i=0;i<SCORE_CONFIG.rendaFaixa.length;i++){if(lo>=SCORE_CONFIG.rendaFaixa[i][0])return SCORE_CONFIG.rendaFaixa[i][1];}
-    return 8;
-  }
-  function leadScore(r){return Math.min(100,matchPts(r.satisfacao,SCORE_CONFIG.satisfacao,0)+matchPts(r.aceitar,SCORE_CONFIG.aceitar,0)+matchPts(r.conhece,SCORE_CONFIG.conhece,7));}
-  function tierOf(sc){return sc>=SCORE_CONFIG.quente?"Quente":(sc>=SCORE_CONFIG.morno?"Morno":"Frio");}
-  function tierColor(sc){return sc>=SCORE_CONFIG.quente?ORANGE:(sc>=SCORE_CONFIG.morno?"#E8A33D":"#5F6A72");}
-
-  // ===== Fit de produto (regra do Renato, 07/07, simplificada em 07/07) =====
-  // Fit BINARIO. O cargo define o produto: Especialista em diante -> PRO;
-  // todo mundo abaixo de Especialista -> START.
-  // Excecao: desempregado e sempre START, independente de qualquer fator.
-  // Experiencia, idade, renda e "aceitaria o desafio" NAO entram no fit.
-  var FIT_CONFIG = {
-    cargoPro: /especialista|coordenador|gerente|consultor|supervisor|diretor|head|lider|arquitet|gestor|ciso|executivo/,
-    desempregado: /desempregad|recoloca|sem emprego/
-  };
-  function rendaMidpoint(txt){
-    var x=norm(txt); if(!x) return null;
-    if(/menos|ate 5|inferior|< ?5/.test(x)) return 4;
-    if(/acima|mais de 25|superior|25k\+/.test(x)) return 30;
+  function isAluno(r){return MQL_CONFIG.aluno.test(norm(r.canal));}
+  function isEstudante(r){return MQL_CONFIG.estudante.test(norm(r.funcao));}
+  function rendaPro(r){
+    var x=norm(r.renda); if(!x) return false;
+    if(/menos|ate 5|inferior|< ?5/.test(x)) return false;
+    if(/acima|mais de 25|superior|25k\+/.test(x)) return false;
     var nums=(x.match(/\d+/g)||[]).map(Number);
-    if(nums.length>=2) return (nums[0]+nums[1])/2;
-    if(nums.length===1) return nums[0];
-    return null;
+    if(!nums.length) return false;
+    var lo=Math.min.apply(null,nums), hi=Math.max.apply(null,nums);
+    return lo>=10 && hi<=25;
   }
-  function RENDA_KPI(rows){
-    var el=document.getElementById("k-renda"), sub=document.getElementById("k-renda-sub");
-    if(!el) return;
-    var vals=rows.map(function(r){return rendaMidpoint(r.renda);}).filter(function(v){return v!=null;});
-    if(!vals.length){el.textContent="—";sub.textContent=" ";return;}
-    var avg=vals.reduce(function(a,b){return a+b;},0)/vals.length;
-    el.textContent="R$ "+(Math.round(avg*10)/10).toString().replace(".",",")+"K";
-    sub.textContent="ponto médio das faixas";
+  function mqlOf(r){
+    if(isAluno(r)||isEstudante(r)) return null;
+    if(MQL_CONFIG.statusStart.test(norm(r.situacao))){
+      return /sim/.test(norm(r.aceitar)) ? "START" : null;
+    }
+    if(!rendaPro(r)) return null;
+    if(!MQL_CONFIG.idadePro.test(norm(r.idade))) return null;
+    if(MQL_CONFIG.totSatisf.test(norm(r.satisfacao))) return null;
+    return "PRO";
   }
-  function fitOf(r){
-    var fn=norm(r.funcao), st=norm(r.situacao);
-    if(FIT_CONFIG.desempregado.test(fn)||FIT_CONFIG.desempregado.test(st)) return {produto:"START"};
-    return {produto:FIT_CONFIG.cargoPro.test(fn)?"PRO":"START"};
+
+  // ===== cross-filter (BI): clique num grafico filtra todos os outros =====
+  var CROSS={};
+  var DIMS={
+    dia:function(r){return ymd(r.data);},
+    criativo:function(r){return r.utm_content||"(sem utm_content)";},
+    satisfacao:function(r){return r.satisfacao;},
+    aceitar:function(r){return r.aceitar;},
+    conhece:function(r){return r.conhece;},
+    renda:function(r){return r.renda;},
+    situacao:function(r){return r.situacao;},
+    estado:function(r){return r.estado;},
+    idade:function(r){return r.idade;},
+    funcao:function(r){return r.funcao;}
+  };
+  var DIM_LABEL={dia:"Dia",criativo:"Criativo",satisfacao:"Satisfação",aceitar:"Aceitaria",conhece:"Conhece há",renda:"Renda",situacao:"Situação",estado:"Estado",idade:"Idade",funcao:"Função"};
+  function toggleCross(dim,val){
+    if(CROSS[dim]===val) delete CROSS[dim]; else CROSS[dim]=val;
+    render();
+  }
+  function renderChips(){
+    var box=document.getElementById("xf-chips"); if(!box) return;
+    var dims=Object.keys(CROSS);
+    box.classList.toggle("on",dims.length>0);
+    box.innerHTML="";
+    dims.forEach(function(d){
+      var chip=document.createElement("span");
+      chip.className="xf-chip";
+      var v=CROSS[d]; if(d==="dia"){var pp=v.split("-");v=pp[2]+"/"+pp[1];}
+      chip.innerHTML="<b>"+DIM_LABEL[d]+":</b> "+shorten(v,30)+"  ✕";
+      chip.title="Clique para remover este filtro";
+      chip.addEventListener("click",function(){delete CROSS[d];render();});
+      box.appendChild(chip);
+    });
+    if(dims.length){
+      var clear=document.createElement("button");
+      clear.className="xf-clear";clear.type="button";clear.textContent="limpar filtros";
+      clear.addEventListener("click",function(){CROSS={};render();});
+      box.appendChild(clear);
+    }
   }
 
   // ===== dados fictícios (a planilha está vazia) =====
@@ -383,7 +424,7 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
         aovivo:pick(aovivos),
         score:Math.min(100,Math.max(5,Math.round(30+base*7+Math.random()*45))),
         data:d,
-        utm_source:sc[0],utm_campaign:sc[0]?pick(campaigns):"",
+        utm_source:sc[0],utm_campaign:sc[0]?pick(campaigns):"",utm_content:sc[0]?pick(["ad01","ad02","ad03","ad04"]):"",
         gclid:sc[1]==="gclid"?"x":"",fbclid:sc[1]==="fbclid"?"x":""
       });
     }
@@ -391,9 +432,9 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
   }
 
   // ===== estado / filtros =====
-  var ALL=[], charts={}, scoreOk=false, datesInit=false;
+  var ALL=[], charts={}, datesInit=false;
   function parseInput(id){var v=document.getElementById(id).value;if(!v)return null;var p=v.split("-");return new Date(+p[0],+p[1]-1,+p[2]);}
-  function applyFilters(){
+  function applyFilters(excludeDim){
     var can=document.getElementById("f-canal").value;
     var de=parseInput("f-de"), ate=parseInput("f-ate");
     if(de) de.setHours(0,0,0,0);
@@ -402,48 +443,115 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
       if(de&&r.data<de)return false;
       if(ate&&r.data>ate)return false;
       if(can!=="all"&&r.canal!==can)return false;
+      for(var d in CROSS){
+        if(d===excludeDim) continue;
+        if(DIMS[d](r)!==CROSS[d]) return false;
+      }
       return true;
     });
   }
 
   // ===== charts =====
   function destroy(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
+
+  // plugin: percentual do todo dentro (ou ao lado) de cada barra — pedido do Roberto 17/07
+  var pctPlugin={
+    id:"pct",
+    afterDatasetsDraw:function(chart,args,opts){
+      if(!opts||!opts.total) return;
+      var meta=chart.getDatasetMeta(0), ctx=chart.ctx, horizontal=chart.options.indexAxis==="y";
+      ctx.save();
+      ctx.font="10px 'IBM Plex Mono', monospace";
+      ctx.textBaseline="middle";
+      meta.data.forEach(function(bar,i){
+        var v=chart.data.datasets[0].data[i]; if(v==null||isNaN(v)) return;
+        var pct=Math.round(100*v/opts.total)+"%";
+        if(horizontal){
+          var w=Math.abs(bar.x-bar.base), inside=w>40;
+          ctx.textAlign=inside?"right":"left";
+          ctx.fillStyle=inside?"#1A0A00":MUTED;
+          ctx.fillText(pct, inside?bar.x-6:bar.x+6, bar.y);
+        } else {
+          var h=Math.abs(bar.base-bar.y), inside=h>20;
+          ctx.textAlign="center";
+          ctx.fillStyle=inside?"#1A0A00":MUTED;
+          ctx.fillText(pct, bar.x, inside?bar.y+11:bar.y-8);
+        }
+      });
+      ctx.restore();
+    }
+  };
+  if(window.Chart) Chart.register(pctPlugin);
+
+  function barColors(labels,opts){
+    var sel=opts.dim?CROSS[opts.dim]:null, base=opts.color||ORANGE;
+    if(!sel) return base;
+    return labels.map(function(l){return l===sel?base:"rgba(255,92,0,.22)";});
+  }
   function barChart(id,labels,data,opts){
     opts=opts||{};destroy(id);var ctx=document.getElementById(id);if(!ctx)return;
-    charts[id]=new Chart(ctx,{type:"bar",data:{labels:labels,datasets:[{data:data,backgroundColor:opts.color||ORANGE,borderRadius:5,maxBarThickness:opts.horizontal?22:46}]},
+    var total=data.reduce(function(a,b){return a+(+b||0);},0);
+    charts[id]=new Chart(ctx,{type:"bar",data:{labels:labels,datasets:[{data:data,backgroundColor:barColors(labels,opts),borderRadius:5,maxBarThickness:opts.horizontal?22:46}]},
       options:{indexAxis:opts.horizontal?"y":"x",responsive:true,maintainAspectRatio:false,
-        scales:{x:{grid:{color:"rgba(43,47,51,.6)"},ticks:{color:DIM}},y:{grid:{color:"rgba(43,47,51,.6)"},ticks:{color:DIM}}}}});
+        plugins:{pct:{total:total},tooltip:{callbacks:{label:function(cc){return cc.raw+" leads ("+(total?Math.round(100*cc.raw/total):0)+"%)";}}}},
+        scales:{x:{grid:{color:"rgba(43,47,51,.6)"},ticks:{color:DIM,callback:function(v){var l=this.getLabelForValue?this.getLabelForValue(v):v;return (typeof l==="string"&&l.length>18&&!opts.horizontal)?l.slice(0,17)+"…":l;}}},
+          y:{grid:{color:"rgba(43,47,51,.6)"},ticks:{color:DIM,callback:function(v){var l=this.getLabelForValue?this.getLabelForValue(v):v;return (typeof l==="string"&&l.length>26)?l.slice(0,25)+"…":l;}}}}}});
+    bindCanvasClick(id,labels,opts.dim);
   }
-  function doughnut(id,labels,data){
-    destroy(id);var ctx=document.getElementById(id);if(!ctx)return;
-    charts[id]=new Chart(ctx,{type:"doughnut",data:{labels:labels,datasets:[{data:data,backgroundColor:PALETTE,borderColor:"#1A1C1F",borderWidth:2}]},
-      options:{responsive:true,maintainAspectRatio:false,cutout:"64%",plugins:{legend:{display:true,position:"right",labels:{color:MUTED,boxWidth:10,font:{size:11}}}}}});
+  // cross-filter: listener proprio no canvas (o binding interno de eventos do
+  // Chart.js nao dispara neste ambiente; getElementsAtEventForMode resolve igual)
+  function bindCanvasClick(id,labels,dim){
+    var cv=document.getElementById(id); if(!cv) return;
+    if(!dim){cv.onclick=null;cv.style.cursor="default";return;}
+    cv.style.cursor="pointer";
+    cv.onclick=function(e){
+      var ch=charts[id]; if(!ch) return;
+      var els=ch.getElementsAtEventForMode(e,"nearest",{intersect:true},true);
+      if(els.length) toggleCross(dim,labels[els[0].index]);
+    };
+  }
+  function doughnut(id,labels,data,opts){
+    opts=opts||{};destroy(id);var ctx=document.getElementById(id);if(!ctx)return;
+    var total=data.reduce(function(a,b){return a+(+b||0);},0);
+    var sel=opts.dim?CROSS[opts.dim]:null;
+    var colors=labels.map(function(l,i){var c=PALETTE[i%PALETTE.length];return (sel&&l!==sel)?"rgba(125,132,139,.25)":c;});
+    charts[id]=new Chart(ctx,{type:"doughnut",data:{labels:labels,datasets:[{data:data,backgroundColor:colors,borderColor:"#1A1C1F",borderWidth:2}]},
+      options:{responsive:true,maintainAspectRatio:false,cutout:"64%",
+        plugins:{legend:{display:true,position:"right",labels:{color:MUTED,boxWidth:10,font:{size:11},generateLabels:function(chart){
+          return chart.data.labels.map(function(l,i){
+            var v=chart.data.datasets[0].data[i], pctTxt=total?Math.round(100*v/total)+"%":"";
+            return {text:shorten(l,22)+" · "+pctTxt,fillStyle:chart.data.datasets[0].backgroundColor[i],strokeStyle:"transparent",index:i,fontColor:MUTED};
+          });
+        }}},
+        tooltip:{callbacks:{label:function(cc){return cc.label+": "+cc.raw+" ("+(total?Math.round(100*cc.raw/total):0)+"%)";}}}}}});
+    bindCanvasClick(id,labels,opts.dim);
   }
 
-  function SCORE_KPIS(rows){
+  function MQL_KPIS(rows){
     function t(id,v){var el=document.getElementById(id);if(el)el.textContent=v;}
-    if(scoreOk && rows.length){
-      var avg=Math.round(rows.reduce(function(a,r){return a+leadScore(r);},0)/rows.length);
-      var quentes=rows.filter(function(r){return leadScore(r)>=SCORE_CONFIG.quente;}).length;
-      setNum("k-temp",avg);
-      t("k-temp-sub",quentes+" quente"+(quentes===1?"":"s")+" no período");
-    } else {
-      t("k-temp","—");
-      t("k-temp-sub","aguardando perguntas");
-    }
-  }
-
-  function FIT_KPIS(rows){
-    function t(id,v){var el=document.getElementById(id);if(el)el.textContent=v;}
-    var st=0,pr=0;
-    rows.forEach(function(r){var f=fitOf(r);if(f.produto==="START")st++;else if(f.produto==="PRO")pr++;});
+    var st=0,pr=0,al=0;
+    rows.forEach(function(r){
+      if(isAluno(r)){al++;return;}
+      var m=mqlOf(r);
+      if(m==="START")st++; else if(m==="PRO")pr++;
+    });
+    var base=rows.length-al;
+    var pctEl=document.getElementById("k-mql-pct");
     if(rows.length){
-      setNum("k-fit-start",st);setNum("k-fit-pro",pr);
-      t("k-fit-start-sub",Math.round(100*st/rows.length)+"% do total");
-      t("k-fit-pro-sub",Math.round(100*pr/rows.length)+"% do total");
+      setNum("k-mql-start",st);setNum("k-mql-pro",pr);setNum("k-alunos",al);
+      t("k-mql-start-sub", base?Math.round(100*st/base)+"% dos leads":" ");
+      t("k-mql-pro-sub", base?Math.round(100*pr/base)+"% dos leads":" ");
+      var pct=base?Math.round(100*(st+pr)/base):0;
+      pctEl.textContent=base?(pct+"%"):"—";
+      pctEl.classList.toggle("ok",base>0&&pct>=MQL_CONFIG.metaPct);
+      pctEl.classList.toggle("bad",base>0&&pct<MQL_CONFIG.metaPct);
+      t("k-mql-pct-sub", base?(pct>=MQL_CONFIG.metaPct?"meta de 80% atingida":"abaixo da meta de 80%"):"meta \u2265 80%");
+      t("k-alunos-sub","fora dos MQLs");
     } else {
-      t("k-fit-start","—");t("k-fit-pro","—");
-      t("k-fit-start-sub"," ");t("k-fit-pro-sub"," ");
+      ["k-mql-start","k-mql-pro","k-alunos"].forEach(function(id){t(id,"—");});
+      t("k-mql-start-sub"," ");t("k-mql-pro-sub"," ");
+      pctEl.textContent="—";pctEl.classList.remove("ok","bad");
+      t("k-mql-pct-sub","meta \u2265 80%");t("k-alunos-sub"," ");
     }
   }
 
@@ -453,61 +561,69 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
     document.body.classList.toggle("is-empty",rows.length===0);
     var now=new Date();
 
-    // KPIs
+    // KPIs (usam TODOS os filtros, incluindo cross-filter)
     var todayStr=ymd(now);
     var hoje=rows.filter(function(r){return ymd(r.data)===todayStr;}).length;
-    var d7=rows.filter(function(r){return (now-r.data)/86400000<=7;}).length;
-    var avg=rows.length?Math.round(rows.reduce(function(s,r){return s+r.score;},0)/rows.length):0;
-    var livePct=rows.length?Math.round(100*rows.filter(aovivoPos).length/rows.length):0;
-    setNum("k-total",rows.length);setNum("k-hoje",hoje);SCORE_KPIS(rows);FIT_KPIS(rows);RENDA_KPI(rows);
-    document.body.classList.toggle("no-score", !scoreOk);
-    document.getElementById("k-total-sub").textContent=rows.length?("+"+hoje+" hoje"):" ";
-    
-    
-    document.getElementById("k-hoje-sub").textContent=" ";
+    setNum("k-total",rows.length);setNum("k-hoje",hoje);MQL_KPIS(rows);
+    document.getElementById("k-total-sub").textContent=rows.length?("+"+hoje+" hoje"):" ";
+    document.getElementById("k-hoje-sub").textContent=" ";
+    renderChips();
 
     if(rows.length===0){return;}
 
-    // série temporal
-    var byDay=count(rows,function(r){return ymd(r.data);});
+    // padrão BI: cada gráfico ignora o filtro da PRÓPRIA dimensão
+    function rowsFor(dim){return applyFilters(dim);}
+    function entriesFor(dim,limit){
+      var rs=rowsFor(dim);
+      var e=sortedEntries(count(rs,DIMS[dim]),limit);
+      return e;
+    }
+
+    // série temporal (dimensão: dia)
+    var tRows=rowsFor("dia");
+    var byDay=count(tRows,function(r){return ymd(r.data);});
     var days=Object.keys(byDay).sort();
+    var dayLabels=days.map(function(d){var p=d.split("-");return p[2]+"/"+p[1];});
+    var selDay=CROSS.dia;
     destroy("c-time");
     charts["c-time"]=new Chart(document.getElementById("c-time"),{
-      data:{labels:days.map(function(d){var p=d.split("-");return p[2]+"/"+p[1];}),
+      data:{labels:dayLabels,
         datasets:[
-          {type:"line",label:"Leads por dia",data:days.map(function(d){return byDay[d];}),borderColor:ORANGE,borderWidth:2.5,fill:false,tension:.3,pointRadius:4,pointBackgroundColor:ORANGE},
-          {type:"bar",label:"Leads por dia (barras)",data:days.map(function(d){return byDay[d];}),backgroundColor:"rgba(255,122,26,.28)",borderRadius:4,maxBarThickness:22}
+          {type:"line",label:"Leads por dia",data:days.map(function(d){return byDay[d];}),borderColor:ORANGE,borderWidth:2.5,fill:false,tension:.3,pointRadius:4,
+           pointBackgroundColor:days.map(function(d){return (selDay&&d!==selDay)?"rgba(255,92,0,.25)":ORANGE;})},
+          {type:"bar",label:"Leads por dia (barras)",data:days.map(function(d){return byDay[d];}),
+           backgroundColor:days.map(function(d){return (selDay&&d!==selDay)?"rgba(255,122,26,.10)":"rgba(255,122,26,.28)";}),borderRadius:4,maxBarThickness:22}
         ]},
       options:{responsive:true,maintainAspectRatio:false,
         plugins:{legend:{display:false},tooltip:{filter:function(it){return it.datasetIndex===0;},callbacks:{label:function(cc){return cc.raw+" leads";}}}},
         scales:{x:{grid:{display:false},ticks:{color:DIM,maxRotation:0,autoSkip:true}},
           y:{position:"left",beginAtZero:true,grid:{color:"rgba(43,47,51,.6)"},ticks:{color:DIM,precision:0}}}}});
+    bindCanvasClick("c-time",days,"dia");
 
-    // renda
-    var rendaOrder=orderByFreqOrList(rows,"renda");
-    barChart("c-renda",rendaOrder.map(function(e){return e[0];}),rendaOrder.map(function(e){return e[1];}));
-    // situação
-    var sit=sortedEntries(count(rows,function(r){return r.situacao;}));
-    doughnut("c-situacao",sit.map(function(e){return e[0];}),sit.map(function(e){return e[1];}));
-    // estado
-    var est=sortedEntries(count(rows,function(r){return r.estado;}),10);
-    barChart("c-estado",est.map(function(e){return e[0];}),est.map(function(e){return e[1];}),{horizontal:true});
-    // idade
-    var idd=sortedEntries(count(rows,function(r){return r.idade;}));
-    barChart("c-idade",idd.map(function(e){return e[0];}),idd.map(function(e){return e[1];}));
-    // funcao
-    var fnc=sortedEntries(count(rows,function(r){return r.funcao;}),8);
-    barChart("c-funcao",fnc.map(function(e){return e[0];}),fnc.map(function(e){return e[1];}),{horizontal:true});
-    // conhece
-    var con=sortedEntries(count(rows,function(r){return r.conhece;}));
-    barChart("c-conhece",con.map(function(e){return e[0];}),con.map(function(e){return e[1];}),{horizontal:true,color:ORANGE2});
+    // qualificação + ICP + perfil (todos clicáveis, com % do todo)
+    var cri=entriesFor("criativo",8);
+    barChart("c-criativo",cri.map(function(e){return e[0];}),cri.map(function(e){return e[1];}),{horizontal:true,dim:"criativo"});
+    var sat=entriesFor("satisfacao");
+    barChart("c-satisfacao",sat.map(function(e){return e[0];}),sat.map(function(e){return e[1];}),{horizontal:true,dim:"satisfacao"});
+    var ace=entriesFor("aceitar");
+    barChart("c-aceitar",ace.map(function(e){return e[0];}),ace.map(function(e){return e[1];}),{dim:"aceitar"});
+    var con=entriesFor("conhece");
+    barChart("c-conhece",con.map(function(e){return e[0];}),con.map(function(e){return e[1];}),{horizontal:true,color:ORANGE2,dim:"conhece"});
+    var ren=entriesFor("renda");
+    barChart("c-renda",ren.map(function(e){return e[0];}),ren.map(function(e){return e[1];}),{dim:"renda"});
+    var sit=entriesFor("situacao");
+    doughnut("c-situacao",sit.map(function(e){return e[0];}),sit.map(function(e){return e[1];}),{dim:"situacao"});
+    var est=entriesFor("estado",10);
+    barChart("c-estado",est.map(function(e){return e[0];}),est.map(function(e){return e[1];}),{horizontal:true,dim:"estado"});
+    var idd=entriesFor("idade");
+    barChart("c-idade",idd.map(function(e){return e[0];}),idd.map(function(e){return e[1];}),{dim:"idade"});
+    var fnc=entriesFor("funcao",8);
+    barChart("c-funcao",fnc.map(function(e){return e[0];}),fnc.map(function(e){return e[1];}),{horizontal:true,dim:"funcao"});
 
     buildCanalFilter();
     stampUpdated();
   }
 
-  function orderByFreqOrList(rows,key){return sortedEntries(count(rows,function(r){return r[key];}));}
-  function avgBy(rows,keyFn,valFn){var s={},c={};rows.forEach(function(r){var k=keyFn(r);if(!k)return;s[k]=(s[k]||0)+valFn(r);c[k]=(c[k]||0)+1;});var out={};Object.keys(s).forEach(function(k){out[k]=s[k]/c[k];});return out;}
 
   function shorten(s,n){return s.length>n?s.slice(0,n-1)+"…":s;}
 
@@ -555,7 +671,7 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
   function loadData(){
     if(!CONFIG.csvUrl){
       document.getElementById("demo-banner").classList.remove("hidden");
-      ALL=mockData();scoreOk=true;initDates();render();return;
+      ALL=mockData();initDates();render();return;
     }
     document.getElementById("demo-banner").classList.add("hidden");
     Papa.parse(CONFIG.csvUrl+"&_ts="+Date.now(),{download:true,header:true,skipEmptyLines:true,complete:function(res){
