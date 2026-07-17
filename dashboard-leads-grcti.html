@@ -190,6 +190,7 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
       <div class="card"><h3>Faixa etária</h3><div class="hint">&nbsp;</div><div class="chart-box"><canvas id="c-idade"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
       <div class="card"><h3>Função / atividade</h3><div class="hint">perfil profissional</div><div class="chart-box"><canvas id="c-funcao"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
     </div>
+    <div class="card" style="margin-top:12px"><h3>Fora do MQL</h3><div class="hint" id="fora-hint">quem não entrou em START nem PRO · por critério · clique para filtrar</div><div class="chart-box"><canvas id="c-fora"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
   </section>
 
 </main>
@@ -348,17 +349,24 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
     var nums=(x.match(/\d+/g)||[]).map(Number);
     return nums.length>0 && Math.max.apply(null,nums)<=10;
   }
-  function mqlOf(r){
-    if(isAluno(r)||isEstudante(r)) return null;
-    // START: status de transicao OU renda abaixo de 10k (regra do Renato, 17/07)
+  // classificacao unica: ALUNO / START / PRO / FORA (com motivo, na ordem de avaliacao)
+  function classify(r){
+    if(isAluno(r)) return {tipo:"ALUNO"};
+    if(isEstudante(r)) return {tipo:"FORA",motivo:"Estudante"};
+    // caminho START: status de transicao OU renda abaixo de 10k (Renato, 17/07)
     if(MQL_CONFIG.statusStart.test(norm(r.situacao)) || rendaAbaixo10k(r)){
-      return /sim/.test(norm(r.aceitar)) ? "START" : null;
+      return /sim/.test(norm(r.aceitar)) ? {tipo:"START"} : {tipo:"FORA",motivo:"Recusou o desafio"};
     }
-    if(!rendaPro(r)) return null;
-    if(!MQL_CONFIG.idadePro.test(norm(r.idade))) return null;
-    if(MQL_CONFIG.totSatisf.test(norm(r.satisfacao))) return null;
-    return "PRO";
+    var x=norm(r.renda);
+    if(!x) return {tipo:"FORA",motivo:"Renda não informada"};
+    if(/acima|mais de 25|superior|25k\+/.test(x)) return {tipo:"FORA",motivo:"Renda acima de 25k (perfil executivo)"};
+    if(!rendaPro(r)) return {tipo:"FORA",motivo:"Renda fora do perfil PRO"};
+    if(!MQL_CONFIG.idadePro.test(norm(r.idade))) return {tipo:"FORA",motivo:"Idade fora de 35–54 (regra do PRO)"};
+    if(MQL_CONFIG.totSatisf.test(norm(r.satisfacao))) return {tipo:"FORA",motivo:"Totalmente satisfeito"};
+    return {tipo:"PRO"};
   }
+  function mqlOf(r){var c=classify(r);return (c.tipo==="START"||c.tipo==="PRO")?c.tipo:null;}
+  function foraMotivo(r){var c=classify(r);return c.tipo==="FORA"?c.motivo:"";}
 
   // ===== cross-filter (BI): clique num grafico filtra todos os outros =====
   var CROSS={};
@@ -372,9 +380,10 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
     situacao:function(r){return r.situacao;},
     estado:function(r){return r.estado;},
     idade:function(r){return r.idade;},
-    funcao:function(r){return r.funcao;}
+    funcao:function(r){return r.funcao;},
+    fora:function(r){return foraMotivo(r);}
   };
-  var DIM_LABEL={dia:"Dia",criativo:"Criativo",satisfacao:"Satisfação",aceitar:"Aceitaria",conhece:"Conhece há",renda:"Renda",situacao:"Situação",estado:"Estado",idade:"Idade",funcao:"Função"};
+  var DIM_LABEL={dia:"Dia",criativo:"Criativo",satisfacao:"Satisfação",aceitar:"Aceitaria",conhece:"Conhece há",renda:"Renda",situacao:"Situação",estado:"Estado",idade:"Idade",funcao:"Função",fora:"Fora do MQL"};
   function toggleCross(dim,val){
     if(CROSS[dim]===val) delete CROSS[dim]; else CROSS[dim]=val;
     render();
@@ -627,6 +636,14 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
     barChart("c-idade",idd.map(function(e){return e[0];}),idd.map(function(e){return e[1];}),{dim:"idade"});
     var fnc=entriesFor("funcao",8);
     barChart("c-funcao",fnc.map(function(e){return e[0];}),fnc.map(function(e){return e[1];}),{horizontal:true,dim:"funcao"});
+
+    // Fora do MQL: quem nao entrou e por qual criterio (pedido do Renato, 17/07)
+    var fora=entriesFor("fora");
+    barChart("c-fora",fora.map(function(e){return e[0];}),fora.map(function(e){return e[1];}),{horizontal:true,color:"#C23F00",dim:"fora"});
+    var nFora=rows.filter(function(r){return foraMotivo(r)!=="";}).length;
+    var nAl=rows.filter(isAluno).length, baseFora=rows.length-nAl;
+    var hintEl=document.getElementById("fora-hint");
+    if(hintEl) hintEl.textContent=nFora+" leads fora do MQL · "+(baseFora?Math.round(100*nFora/baseFora):0)+"% da base sem alunos · clique num critério para filtrar";
 
     buildCanalFilter();
     stampUpdated();
