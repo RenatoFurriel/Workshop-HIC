@@ -162,7 +162,7 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
     <div class="kpi-grid">
       <div class="kpi"><div class="label">Total de leads</div><div class="val" id="k-total">0</div><div class="sub" id="k-total-sub">&nbsp;</div></div>
       <div class="kpi"><div class="label">Leads hoje</div><div class="val" id="k-hoje">0</div><div class="sub" id="k-hoje-sub">&nbsp;</div></div>
-      <div class="kpi"><div class="label">MQL START <details class="kpi-info"><summary title="Como calculamos">&#9432;</summary><div class="pop"><p><b>MQL START (todas as condições):</b></p><p>Status de carreira: desempregado, em transição, recolocação ou quer entrar no mercado <b>OU renda abaixo de 10k</b> (mesmo já atuando)</p><p>Aceita o desafio de mudar de emprego: <b>Sim</b></p><p>Exclui <b>estudante</b> e <b>aluno da mentoria</b></p></div></details></div><div class="val" id="k-mql-start">—</div><div class="sub" id="k-mql-start-sub">&nbsp;</div></div>
+      <div class="kpi"><div class="label">MQL START <details class="kpi-info"><summary title="Como calculamos">&#9432;</summary><div class="pop"><p><b>MQL START (todas as condições):</b></p><p>Status de carreira: desempregado, em transição, recolocação ou quer entrar no mercado <b>OU renda abaixo de 10k</b> (mesmo já atuando) <b>OU idade fora de 35–54</b> no perfil que seria PRO</p><p>Exclui <b>estudante</b> e <b>aluno da mentoria</b></p></div></details></div><div class="val" id="k-mql-start">—</div><div class="sub" id="k-mql-start-sub">&nbsp;</div></div>
       <div class="kpi"><div class="label">MQL PRO <details class="kpi-info"><summary title="Como calculamos">&#9432;</summary><div class="pop"><p><b>MQL PRO (todas as condições):</b></p><p>Última faixa de renda entre <b>10k e 25k</b> (acima de 25k: futuro produto executivo)</p><p>Status: já atua (não pode estar desempregado, em transição, nem querendo entrar no mercado)</p><p>Faixa etária <b>35 a 54 anos</b></p><p>Não pode estar <b>totalmente satisfeito</b> com a carreira</p><p>Exclui <b>estudante</b> e <b>aluno da mentoria</b></p></div></details></div><div class="val" id="k-mql-pro">—</div><div class="sub" id="k-mql-pro-sub">&nbsp;</div></div>
       <div class="kpi"><div class="label">% MQL <details class="kpi-info"><summary title="Meta de qualidade">&#9432;</summary><div class="pop pop-right"><p><b>Meta do Roberto (17/07):</b></p><p>MQL START + MQL PRO devem somar <b>pelo menos 80%</b> dos leads captados (sem contar alunos).</p><p>Abaixo de 80% = criativo ou segmentação captando o público errado.</p></div></details></div><div class="val" id="k-mql-pct">—</div><div class="sub" id="k-mql-pct-sub">meta &ge; 80%</div></div>
       <div class="kpi"><div class="label">Alunos</div><div class="val" id="k-alunos">—</div><div class="sub" id="k-alunos-sub">fora dos MQLs</div></div>
@@ -320,8 +320,8 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
   // PRO: renda 10k-25k + ja atua (nao desempregado/transicao/entrar no mercado)
   //      + 35-54 anos + nao "totalmente satisfeito" + nao estudante/aluno.
   // START: (status desempregado/transicao/recolocacao/entrar no mercado
-  //      OU renda abaixo de 10k, mesmo ja atuando)
-  //      + aceita o desafio (Sim) + nao estudante/aluno.
+  //      OU renda abaixo de 10k OU idade fora de 35-54 no caminho PRO)
+  //      + nao estudante/aluno. "Aceitaria o desafio" nao e criterio.
   // Aluno ("Ja faco parte da mentoria" no canal) nunca e MQL e tem card proprio.
   // Meta do Roberto: START+PRO >= 80% dos leads captados (base sem alunos).
   var MQL_CONFIG = {
@@ -354,14 +354,14 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
     if(isAluno(r)) return {tipo:"ALUNO"};
     if(isEstudante(r)) return {tipo:"FORA",motivo:"Estudante"};
     // caminho START: status de transicao OU renda abaixo de 10k (Renato, 17/07)
-    if(MQL_CONFIG.statusStart.test(norm(r.situacao)) || rendaAbaixo10k(r)){
-      return /sim/.test(norm(r.aceitar)) ? {tipo:"START"} : {tipo:"FORA",motivo:"Recusou o desafio"};
-    }
+    // "aceitaria o desafio" NAO e mais criterio de nada (Renato, 17/07)
+    if(MQL_CONFIG.statusStart.test(norm(r.situacao)) || rendaAbaixo10k(r)) return {tipo:"START"};
     var x=norm(r.renda);
     if(!x) return {tipo:"FORA",motivo:"Renda não informada"};
     if(/acima|mais de 25|superior|25k\+/.test(x)) return {tipo:"FORA",motivo:"Renda acima de 25k (perfil executivo)"};
     if(!rendaPro(r)) return {tipo:"FORA",motivo:"Renda fora do perfil PRO"};
-    if(!MQL_CONFIG.idadePro.test(norm(r.idade))) return {tipo:"FORA",motivo:"Idade fora de 35–54 (regra do PRO)"};
+    // idade fora da faixa do PRO nao exclui: vira START (Renato, 17/07)
+    if(!MQL_CONFIG.idadePro.test(norm(r.idade))) return {tipo:"START"};
     if(MQL_CONFIG.totSatisf.test(norm(r.satisfacao))) return {tipo:"FORA",motivo:"Totalmente satisfeito"};
     return {tipo:"PRO"};
   }
