@@ -273,7 +273,8 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
       utm_campaign:fieldFor(headers,["utm_campaign"]),
       utm_content:fieldFor(headers,["utm_content"]),
       gclid:fieldFor(headers,["gclid"]),
-      fbclid:fieldFor(headers,["fbclid"])
+      fbclid:fieldFor(headers,["fbclid"]),
+      limpeza:fieldFor(headers,["limpeza"])
     };
   }
   function normalizeRows(raw,headers){
@@ -300,7 +301,8 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
         utm_campaign:(g("utm_campaign")||"").toString().trim(),
         utm_content:(g("utm_content")||"").toString().trim(),
         gclid:(g("gclid")||"").toString().trim(),
-        fbclid:(g("fbclid")||"").toString().trim()
+        fbclid:(g("fbclid")||"").toString().trim(),
+        limpeza:(g("limpeza")||"").toString().trim()
       };
     });
   }
@@ -449,7 +451,7 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
   }
 
   // ===== estado / filtros =====
-  var ALL=[], charts={}, datesInit=false;
+  var ALL=[], charts={}, datesInit=false, descontados=0;
   function parseInput(id){var v=document.getElementById(id).value;if(!v)return null;var p=v.split("-");return new Date(+p[0],+p[1]-1,+p[2]);}
   function applyFilters(excludeDim){
     var can=document.getElementById("f-canal").value;
@@ -582,7 +584,7 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
     var todayStr=ymd(now);
     var hoje=rows.filter(function(r){return ymd(r.data)===todayStr;}).length;
     setNum("k-total",rows.length);setNum("k-hoje",hoje);MQL_KPIS(rows);
-    document.getElementById("k-total-sub").textContent=rows.length?("+"+hoje+" hoje"):" ";
+    document.getElementById("k-total-sub").textContent=rows.length?("+"+hoje+" hoje"+(descontados?"  ·  −"+descontados+" duplicados/vazios":"")):" ";
     document.getElementById("k-hoje-sub").textContent=" ";
     renderChips();
 
@@ -703,6 +705,14 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
       var headers=res.meta.fields||[];
       var rows=normalizeRows(res.data,headers);
       if(rows.length===0 && ALL.length>0){stampUpdated();return;} // ignora refresh vazio/transiente
+      // Desconta o que o agente de limpeza marcou (coluna "Limpeza": duplicados e
+      // formulario em branco). Se a coluna ainda nao vier no CSV, nao desconta nada.
+      var temColLimpeza=headers.some(function(h){return norm(h).indexOf("limpeza")>=0;});
+      if(temColLimpeza){
+        var limpos=rows.filter(function(r){return !r.limpeza;});
+        descontados=rows.length-limpos.length;
+        rows=limpos;
+      } else { descontados=0; }
       ALL=rows;
       initDates();
       render();
