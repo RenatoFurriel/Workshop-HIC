@@ -190,6 +190,11 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
       <div class="card"><h3>Faixa etária</h3><div class="hint">&nbsp;</div><div class="chart-box"><canvas id="c-idade"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
       <div class="card"><h3>Função / atividade</h3><div class="hint">perfil profissional</div><div class="chart-box"><canvas id="c-funcao"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
     </div>
+    <div class="grid g-3" style="margin-top:12px">
+      <div class="card"><h3>Origem</h3><div class="hint">utm_source · de onde vem o tráfego</div><div class="chart-box"><canvas id="c-utmsource"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
+      <div class="card"><h3>Mídia</h3><div class="hint">utm_medium · canal de origem</div><div class="chart-box"><canvas id="c-utmmedium"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
+      <div class="card"><h3>Campanha</h3><div class="hint">utm_campaign · qual campanha traz lead</div><div class="chart-box"><canvas id="c-utmcampaign"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
+    </div>
     <div class="card" style="margin-top:12px"><h3>Fora do MQL</h3><div class="hint" id="fora-hint">quem não entrou em START nem PRO · por critério · clique para filtrar</div><div class="chart-box"><canvas id="c-fora"></canvas><div class="empty"><span class="small">sem dados</span></div></div></div>
   </section>
 
@@ -270,6 +275,7 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
       score:fieldFor(headers,["pontuacao","pontua"]),
       data:fieldFor(headers,["data"]),
       utm_source:fieldFor(headers,["utm_source"]),
+      utm_medium:fieldFor(headers,["utm_medium"]),
       utm_campaign:fieldFor(headers,["utm_campaign"]),
       utm_content:fieldFor(headers,["utm_content"]),
       gclid:fieldFor(headers,["gclid"]),
@@ -298,6 +304,7 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
         score:parseFloat((g("score")||"0").toString().replace(",","."))||0,
         data:parseDate(g("data"))||new Date(),
         utm_source:(g("utm_source")||"").toString().trim(),
+        utm_medium:(g("utm_medium")||"").toString().trim(),
         utm_campaign:(g("utm_campaign")||"").toString().trim(),
         utm_content:(g("utm_content")||"").toString().trim(),
         gclid:(g("gclid")||"").toString().trim(),
@@ -383,9 +390,12 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
     estado:function(r){return r.estado;},
     idade:function(r){return r.idade;},
     funcao:function(r){return r.funcao;},
+    utm_source:function(r){return (r.utm_source||"").toLowerCase()||"(sem utm_source)";},
+    utm_medium:function(r){return (r.utm_medium||"").toLowerCase()||"(sem utm_medium)";},
+    utm_campaign:function(r){return (r.utm_campaign||"").toLowerCase()||"(sem utm_campaign)";},
     fora:function(r){return foraMotivo(r);}
   };
-  var DIM_LABEL={dia:"Dia",criativo:"Criativo",satisfacao:"Satisfação",aceitar:"Aceitaria",conhece:"Conhece há",renda:"Renda",situacao:"Situação",estado:"Estado",idade:"Idade",funcao:"Função",fora:"Fora do MQL"};
+  var DIM_LABEL={dia:"Dia",criativo:"Criativo",satisfacao:"Satisfação",aceitar:"Aceitaria",conhece:"Conhece há",renda:"Renda",situacao:"Situação",estado:"Estado",idade:"Idade",funcao:"Função",utm_source:"Origem",utm_medium:"Mídia",utm_campaign:"Campanha",fora:"Fora do MQL"};
   function toggleCross(dim,val){
     if(CROSS[dim]===val) delete CROSS[dim]; else CROSS[dim]=val;
     render();
@@ -638,6 +648,13 @@ footer p{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:
     barChart("c-idade",idd.map(function(e){return e[0];}),idd.map(function(e){return e[1];}),{dim:"idade"});
     var fnc=entriesFor("funcao",8);
     barChart("c-funcao",fnc.map(function(e){return e[0];}),fnc.map(function(e){return e[1];}),{horizontal:true,dim:"funcao"});
+    // aquisição: origem / mídia / campanha (utm_source / utm_medium / utm_campaign)
+    var usr=entriesFor("utm_source",8);
+    barChart("c-utmsource",usr.map(function(e){return e[0];}),usr.map(function(e){return e[1];}),{horizontal:true,dim:"utm_source"});
+    var umd=entriesFor("utm_medium",8);
+    barChart("c-utmmedium",umd.map(function(e){return e[0];}),umd.map(function(e){return e[1];}),{horizontal:true,color:ORANGE2,dim:"utm_medium"});
+    var ucp=entriesFor("utm_campaign",8);
+    barChart("c-utmcampaign",ucp.map(function(e){return e[0];}),ucp.map(function(e){return e[1];}),{horizontal:true,dim:"utm_campaign"});
 
     // Fora do MQL: quem nao entrou e por qual criterio (pedido do Renato, 17/07)
     var fora=entriesFor("fora");
