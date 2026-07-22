@@ -5,11 +5,11 @@
  * A cada execução varre a base e PINTA DE VERMELHO o que precisa sair — nunca apaga nada.
  * A exclusão continua sendo decisão humana; a aba "Dash" acompanha via QUERY.
  *
- * O que marca:
+ * O que marca (a planilha INTEIRA, inclusive alunos):
  *   1. Duplicados — mesma pessoa por E-MAIL OU WHATSAPP (normalizados). Mantém 1 linha
- *      canônica (a mais completa; empate = mais recente) e pinta as demais.
+ *      canônica (a mais completa; empate = mais recente) e pinta as demais. Vale para
+ *      todo mundo: cadastro duplicado de aluno também é pintado.
  *   2. Formulário em branco — linha só com UTM/tracking, sem nenhuma resposta do form.
- * NÃO marca alunos ("Já faço parte da mentoria") — são leads válidos, só fora do MQL.
  *
  * Segurança: cada execução limpa a marcação que o PRÓPRIO agente pôs antes (rastreada
  * pela coluna "Limpeza") e remarca do zero — não acumula e preserva formatação manual.
@@ -30,10 +30,8 @@ var CONFIG = {
   // palavras-chave p/ achar colunas (sem acento, minúsculo) — robusto a reordenação:
   KW_EMAIL:    ['e-mail', 'email', 'e mail'],
   KW_WHATSAPP: ['whatsapp', 'whats', 'telefone', 'celular', 'contato'],
-  KW_CANAL:    ['ficou sabendo', 'como voce'],
   // colunas que NÃO contam como "resposta do formulário" (p/ detectar linha em branco):
-  KW_NAO_FORM: ['data', 'id', 'pontua', 'utm_', 'gclid', 'fbclid', 'carimbo', 'timestamp'],
-  ALUNO_REGEX: /faco parte da mentoria|ja sou alun|sou da mentoria/
+  KW_NAO_FORM: ['data', 'id', 'pontua', 'utm_', 'gclid', 'fbclid', 'carimbo', 'timestamp']
 };
 
 // ===================== helpers =====================
@@ -83,7 +81,6 @@ function varrerBase(){
 
   var iEmail = _achaCol(headers, CONFIG.KW_EMAIL);
   var iFone  = _achaCol(headers, CONFIG.KW_WHATSAPP);
-  var iCanal = _achaCol(headers, CONFIG.KW_CANAL);
   var colsForm = [];
   for (var c = 0; c < headers.length; c++){ if (c !== idxLimpeza && !_ehColNaoForm(headers[c])) colsForm.push(c); }
 
@@ -99,10 +96,8 @@ function varrerBase(){
   // ---- 2) detecção ----
   var motivo = new Array(nLin); // string por linha (ou undefined)
 
-  // 2a. formulário em branco (ignora alunos — aluno com form vazio é raro, mas não marcamos)
+  // 2a. formulário em branco (planilha inteira, sem exceção)
   for (var r2 = 0; r2 < nLin; r2++){
-    var ehAluno = iCanal >= 0 && CONFIG.ALUNO_REGEX.test(_norm(dados[r2][iCanal]));
-    if (ehAluno) continue;
     var preenchidos = 0;
     for (var f = 0; f < colsForm.length; f++){ if (_norm(dados[r2][colsForm[f]]) !== '') preenchidos++; }
     if (preenchidos === 0) motivo[r2] = 'formulário em branco';
